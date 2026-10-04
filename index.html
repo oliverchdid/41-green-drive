@@ -6,7 +6,10 @@
 <title>41 Green Drive Expenses</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="41 Green Drive">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#17664F">
 <script src="config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
@@ -55,7 +58,7 @@ header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background
 .addbill{justify-self:end;border:0;border-radius:999px;background:var(--addbill);color:#fff;font-weight:800;letter-spacing:.02em;padding:8px 14px;cursor:pointer;white-space:nowrap}
 .addbill[aria-current="page"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--addbill)}
 .period{grid-area:period}
-.brand{font-weight:900;font-size:20px;letter-spacing:.01em;line-height:1.2}
+.brand{font-weight:900;font-size:24px;letter-spacing:.01em;line-height:1.2}
 .brand span{color:var(--accent)}
 nav.tabs{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
 nav.tabs button{border:0;background:transparent;padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:600;white-space:nowrap}
@@ -166,7 +169,7 @@ td input,td select{min-width:90px}
 @media (max-width:600px){.donut{grid-template-columns:1fr;justify-items:center}.donut svg{width:200px;height:200px}.legend2{width:100%}}
 @media (max-width:600px){input,select,textarea{font-size:16px!important}.dlg .card{max-height:85%;padding:16px}}
 @media (max-width:600px){.accts .hide-sm{display:none}.accts .show-sm{display:inline}.obrow{gap:6px}.obrow .amt{font-size:14px}.accts th,.accts td{padding:7px 3px;font-size:13px}.accts th{font-size:12px}.btn.sm{padding:5px 8px;font-size:12px}.acts2{gap:4px}
-.brand{font-size:17px}.topin{grid-template-areas:"brand gear" "actions actions" "tabs tabs" "period period"}.actions{justify-content:flex-start}.paybtn{padding:7px 10px;font-size:12px}.actions .addbill,.actions .paybtn{width:124px;padding-left:0;padding-right:0}nav.tabs{gap:2px}nav.tabs button{padding:6px 6px;font-size:13px}.addbill{padding:7px 10px;font-size:12px}.topin{padding:8px 10px 10px;gap:6px 6px}
+.brand{font-size:min(20px,4.6vw);letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}.gear{width:36px;height:36px}.icons{gap:6px}.topin{grid-template-areas:"brand gear" "actions actions" "tabs tabs" "period period"}.actions{justify-content:flex-start}.paybtn{padding:7px 10px;font-size:12px}.actions .addbill,.actions .paybtn{width:124px;padding-left:0;padding-right:0}nav.tabs{gap:2px}nav.tabs button{padding:6px 6px;font-size:13px}.addbill{padding:7px 10px;font-size:12px}.topin{padding:8px 10px 10px;gap:6px 6px}
 .bar{grid-template-columns:84px 1fr 78px}.item{grid-template-columns:70px 1fr}.item .right{grid-column:1/-1}}
 @media (prefers-reduced-motion: reduce){.toast{transition:none}}
 </style>
