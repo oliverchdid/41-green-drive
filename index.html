@@ -192,12 +192,17 @@ td input,td select{min-width:90px}
 .budmark{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1px;background:var(--ink);border-radius:2px}
 .spark{width:100%;height:auto;max-height:140px;display:block;margin:6px 0 2px}
 .wrapseg{flex-wrap:wrap}
-.hrow{grid-template-columns:1fr auto auto;align-items:start}
-.hrow .hmeta{white-space:normal}
+.hrow{padding:12px 2px;border-bottom:1px solid var(--line)}
+.hrow:last-child{border-bottom:0}
+.htop{display:flex;align-items:baseline;gap:10px}
+.htop strong{flex:1;min-width:0}
+.htop .amt{font-weight:700;white-space:nowrap}
+.htop .linkbtn{flex:0 0 auto}
+.hrow .hmeta{font-size:13px;color:var(--muted);margin-top:2px}
 .hrow a{color:var(--accent)}
+.hact{margin-top:8px}
 .lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:24px}
 .lockin{display:grid;gap:10px;justify-items:center;text-align:center;max-width:320px}
-@media (max-width:600px){.hrow{grid-template-columns:1fr auto}.hrow > div:last-child{grid-column:1/-1}}
 /* phone tables: small ones shrink, wide ones become stacked cards (see fitTables) */
 @media (max-width:600px){
   table.fit{min-width:0}
@@ -1770,11 +1775,11 @@ function renderHouse(banner){
   if (!items.length){
     html += `<div class="empty">Nothing here yet.${tab==="task" ? `<p><button class="btn" id="hCommon">Add common house tasks</button></p>` : ""}</div>`;
   } else html += `<div class="list">` + items.map(h => { const sm = houseSummary(h); const hist = (sm.hist||[]).slice(-3).reverse();
-    return `<div class="obrow hrow"><div class="obname"><strong>${sm.raw ? sm.title : esc(sm.title)}</strong><div class="meta hmeta">${sm.sub}</div>
-      ${hist.length ? `<div class="meta">${hist.map(x => `✓ ${esc(longDate(x.date))}${x.cost?` ${money(x.cost)}`:""}`).join(" · ")}</div>` : ""}
+    return `<div class="hrow"><div class="htop"><strong>${sm.raw ? sm.title : esc(sm.title)}</strong>${sm.right ? `<span class="amt">${sm.right}</span>` : ""}<button class="linkbtn" data-hedit="${esc(h.id)}">Edit</button></div>
+      <div class="meta hmeta">${sm.sub}</div>
+      ${hist.length ? `<div class="meta hmeta">${hist.map(x => `✓ ${esc(longDate(x.date))}${x.cost?` ${money(x.cost)}`:""}`).join(" · ")}</div>` : ""}
       ${(h.photos||[]).length ? `<div class="pics">${h.photos.map((id,i)=>`<button data-hlb="${esc(h.id)}" data-i="${i}" aria-label="Open photo ${i+1}"><img src="${blobUrl(id)}" alt="" loading="lazy"></button>`).join("")}</div>` : ""}
-      <div class="acts" style="justify-content:flex-start"><button class="linkbtn" data-hedit="${esc(h.id)}">Edit</button><button class="linkbtn danger" data-hrm="${esc(h.id)}">Delete</button></div></div>
-      <div class="amt">${sm.right||""}</div><div>${sm.act||""}</div></div>`; }).join("") + `</div>`;
+      ${sm.act ? `<div class="hact">${sm.act}</div>` : ""}</div>`; }).join("") + `</div>`;
   html += `</div>`;
   if (tab === "renewal") html += `<p class="muted" style="font-size:13px">Mortgage escrow, property tax, home and car insurance, alarm monitoring… Renewals due in the next 30 days also show on the Month page.</p>`;
   if (tab === "item") html += `<p class="muted" style="font-size:13px">Add a photo of the receipt and the model sticker so they're there when something breaks.</p>`;
@@ -1783,7 +1788,6 @@ function renderHouse(banner){
   $("#hAdd").onclick = () => openHouseForm(tab);
   const hc = $("#hCommon"); if (hc) hc.onclick = async () => { hc.disabled = true; try { await track("Added common house tasks", async () => { for (const [name, every] of COMMON_TASKS) await wAdd(HOUSE, {type:"task", name, every, lastDone:"", firstDue:"", cost:"", contact:"", notes:"", history:[], updatedAt:new Date().toISOString()}); }); toast("Added. Tap Edit on each to set when it was last done."); } catch(x){ hc.disabled = false; toast("Couldn't add them"); } };
   app.querySelectorAll("[data-hedit]").forEach(b => b.onclick = () => { const h = state.house.find(x => x.id === b.dataset.hedit); if (h) openHouseForm(h.type, h); });
-  app.querySelectorAll("[data-hrm]").forEach(b => b.onclick = () => confirmFirst(b, async () => { const h = state.house.find(x => x.id === b.dataset.hrm); try { await track(`Deleted ${HOUSE_TYPES[h.type].one}: ${h.name||h.meter||""}`, () => wDel(HOUSE+"/"+h.id)); toast("Deleted"); } catch(x){ toast("Couldn't delete"); } }));
   app.querySelectorAll("[data-hdone]").forEach(b => b.onclick = async () => { const h = state.house.find(x => x.id === b.dataset.hdone); if (!h) return; b.disabled = true;
     const {id, ...body} = clone(h); const history = [...(h.history||[]), {date:isoToday, cost: h.type==="renewal" ? (+h.amount||0) : (+h.cost||0)}];
     const next = h.type === "task" ? {...body, lastDone:isoToday, history} : {...body, nextDue: h.every ? addMonths(h.nextDue, h.every) : "", history};
@@ -1801,13 +1805,18 @@ function openHouseForm(type, h){
       return `<label class="f">${esc(label)}<input data-hf="${k}" type="${t}"${im} value="${esc(d[k] ?? "")}"></label>`; }).join("")}</div>
       ${T.photos ? `<div class="thumbs">${(d.photos||[]).filter(id => !removed.has(id)).map(id => `<span class="pend"><img src="${blobUrl(id)}" alt="Saved photo"><button class="x" data-hrmp="${esc(id)}" aria-label="Remove photo">×</button></span>`).join("")}${pending.map((b,i) => `<span class="pend"><img data-hnew="${i}" alt="New photo"><button class="x" data-hrmn="${i}" aria-label="Remove photo">×</button></span>`).join("")}</div>
         <div class="row" style="margin-top:10px"><label class="btn" style="cursor:pointer">📷 Add photo<input type="file" id="hPhoto" accept="image/*" multiple hidden></label></div>` : ""}
-      <div class="row" style="margin-top:14px"><button class="btn primary" id="hSave">Save</button><button class="btn" id="hCancel">Cancel</button><span class="status" id="hMsg" style="margin:0"></span></div>`;
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="hSave">Save</button><button class="btn" id="hCancel">Cancel</button>${h ? `<button class="btn danger" id="hDel" style="margin-left:auto">Delete</button>` : ""}<span class="status" id="hMsg" style="margin:0"></span></div>`;
     $("#houseBody").querySelectorAll("[data-hnew]").forEach(img => img.src = URL.createObjectURL(pending[+img.dataset.hnew]));
     const read = () => $("#houseBody").querySelectorAll("[data-hf]").forEach(el => d[el.dataset.hf] = el.value.trim());
     $("#houseBody").querySelectorAll("[data-hrmp]").forEach(b => b.onclick = () => { read(); removed.add(b.dataset.hrmp); draw(); });
     $("#houseBody").querySelectorAll("[data-hrmn]").forEach(b => b.onclick = () => { read(); pending.splice(+b.dataset.hrmn, 1); draw(); });
     const hp = $("#hPhoto"); if (hp) hp.onchange = async () => { read(); for (const f of hp.files) pending.push(await shrinkImage(f)); draw(); };
     $("#hCancel").onclick = close;
+    const hd = $("#hDel"); if (hd) hd.onclick = async () => {
+      if (hd.dataset.armed !== "1"){ hd.dataset.armed = "1"; hd.textContent = "Tap again to delete"; hd.classList.add("armed"); setTimeout(() => { if (hd.isConnected){ hd.dataset.armed = ""; hd.textContent = "Delete"; hd.classList.remove("armed"); } }, 5000); return; }
+      hd.disabled = true;
+      try { await track(`Deleted ${T.one}: ${h.name||h.meter||""}`, () => wDel(HOUSE+"/"+h.id)); close(); toast("Deleted · undo it from History if needed"); } catch(x){ hd.disabled = false; toast("Couldn't delete"); }
+    };
     $("#hSave").onclick = async () => { read();
       const first = T.fields[0][0]; if (!String(d[first]||"").trim() && type !== "reading") { $("#hMsg").textContent = `Add the ${T.fields[0][1].split(" (")[0].toLowerCase()}.`; return; }
       if (type === "reading" && (d.value === "" || isNaN(+d.value))) { $("#hMsg").textContent = "Add the reading."; return; }
