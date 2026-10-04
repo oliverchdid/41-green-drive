@@ -203,6 +203,11 @@ td input,td select{min-width:90px}
 .hact{margin-top:8px}
 .lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:24px}
 .lockin{display:grid;gap:10px;justify-items:center;text-align:center;max-width:320px}
+/* swipe between months */
+@keyframes swipeL{from{opacity:.3;transform:translateX(40px)}to{opacity:1;transform:none}}
+@keyframes swipeR{from{opacity:.3;transform:translateX(-40px)}to{opacity:1;transform:none}}
+#app.swipe-l{animation:swipeL .22s ease-out}
+#app.swipe-r{animation:swipeR .22s ease-out}
 /* phone tables: small ones shrink, wide ones become stacked cards (see fitTables) */
 @media (max-width:600px){
   table.fit{min-width:0}
@@ -432,6 +437,26 @@ function setView(v){ state.view = v; render(); window.scrollTo({top:0}); }
 document.querySelectorAll("header [data-view]").forEach(b => b.addEventListener("click", () => { if (b.dataset.view==="add" && !(state.draft && state.draft.id)) { /* keep any unsaved new draft */ } setView(b.dataset.view); }));
 $("#prev").onclick = () => { if (state.view==="year" || ((state.view==="entries" || state.view==="payments") && state.entriesScope==="year")){state.year--;} else {state.month--; if(state.month<1){state.month=12;state.year--;}} render(); };
 $("#next").onclick = () => { if (state.view==="year" || ((state.view==="entries" || state.view==="payments") && state.entriesScope==="year")){state.year++;} else {state.month++; if(state.month>12){state.month=1;state.year++;}} render(); };
+
+// ---------- swipe left/right to change month (touch screens only) ----------
+// Works wherever the ‹ › arrows show. Ignored when the swipe starts in a text box, a table or chart that
+// scrolls sideways, or near the screen edge (iPhone's own back gesture).
+(() => {
+  let sx = 0, sy = 0, st = 0, ok = false;
+  const scrollsSideways = el => { for (; el && el !== app; el = el.parentElement) if (el.scrollWidth > el.clientWidth + 2 && /auto|scroll/.test(getComputedStyle(el).overflowX)) return true; return false; };
+  app.addEventListener("touchstart", e => {
+    const t = e.touches[0]; ok = e.touches.length === 1 && $("#period").style.visibility !== "hidden";
+    if (ok && (t.clientX < 24 || t.clientX > innerWidth - 24 || e.target.closest("input,select,textarea,.drop") || scrollsSideways(e.target))) ok = false;
+    sx = t.clientX; sy = t.clientY; st = Date.now();
+  }, {passive:true});
+  app.addEventListener("touchend", e => {
+    if (!ok) return; ok = false;
+    const t = e.changedTouches[0]; const dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.8 || Date.now() - st > 700) return;
+    $(dx < 0 ? "#next" : "#prev").click();
+    if (!matchMedia("(prefers-reduced-motion: reduce)").matches){ app.classList.remove("swipe-l","swipe-r"); void app.offsetWidth; app.classList.add(dx < 0 ? "swipe-l" : "swipe-r"); }
+  }, {passive:true});
+})();
 
 function render(){
   document.querySelectorAll("header [data-view]").forEach(b => {
