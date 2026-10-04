@@ -50,6 +50,12 @@ Open your site in **Safari** → Share button → **Add to Home Screen**. It ope
 
 ---
 
+## Extra features (optional, per device)
+- **Face ID lock:** ⚙ **Settings → Face ID lock → Turn on**. Do it once on each phone or computer. If Face ID ever fails, tap "Sign out instead" and sign in with your password.
+- **Budgets:** ⚙ **Settings → Yearly budgets**. The Year page then shows each category against its budget and where the year is heading.
+- **Offline:** after the site has been opened once with internet, it opens without a connection and shows your saved copy. Changes made offline sync when you're back online (photos need a connection).
+- **House tab:** maintenance reminders, renewals (insurance, property tax), warranties, contacts and meter readings. Only you see it, and it's included in "Export all data".
+
 ## Updating the site later
 When I send you an updated `index.html`, replace it in this folder and drag the folder onto your Netlify site again (**Deploys → drag and drop**). Keep your `config.js`.
 
