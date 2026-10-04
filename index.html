@@ -166,6 +166,14 @@ td input,td select{min-width:90px}
 .legend2{display:grid;gap:8px}
 .lg{display:grid;grid-template-columns:1fr 46px auto;gap:10px;align-items:center}
 .lg .pct{font-weight:800;text-align:right}.lg .amtl{color:var(--muted);text-align:right;font-size:14px}
+.paylog{margin-top:14px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface)}
+.paylog summary{list-style:none;cursor:pointer;padding:10px 12px;font-weight:700;display:flex;align-items:center;gap:8px;user-select:none}
+.paylog summary::-webkit-details-marker{display:none}
+.paylog .arr{display:inline-block;transition:transform .15s;color:var(--muted)}
+.paylog[open] .arr{transform:rotate(90deg)}
+.paylog .cnt{margin-left:auto;font-size:12px;color:var(--muted);background:var(--sunk);border-radius:999px;padding:2px 9px}
+.paylog .paylist{padding:2px 12px 10px;display:grid;gap:6px}
+@media (prefers-reduced-motion: reduce){.paylog .arr{transition:none}}
 @media (max-width:600px){.donut{grid-template-columns:1fr;justify-items:center}.donut svg{width:200px;height:200px}.legend2{width:100%}}
 @media (max-width:600px){input,select,textarea{font-size:16px!important}.dlg .card{max-height:85%;padding:16px}}
 @media (max-width:600px){.accts .hide-sm{display:none}.accts .show-sm{display:inline}.obrow{gap:6px}.obrow .amt{font-size:14px}.accts th,.accts td{padding:7px 3px;font-size:13px}.accts th{font-size:12px}.btn.sm{padding:5px 8px;font-size:12px}.acts2{gap:4px}
@@ -416,7 +424,7 @@ function renderMonth(banner){
   } else hero = `<p class="statement settled">Pick your name above.</p>`;
   const total = sum.totals.shared + sum.totals.phone + sum.totals.personal;
   const paidNotes = sum.payments.filter(p => state.isOwner || p.from===me || p.to===me).map(p=>`<div class="paidnote">${esc(p.from)} paid ${esc(p.to)} ${money(p.amount)} on ${MONTHS[+p.date.slice(5,7)-1].slice(0,3)} ${+p.date.slice(8,10)}${state.isOwner?` <button class="linkbtn danger" data-unpay="${esc(p.id)}">Undo</button>`:""}</div>`).join("");
-  let html = banner + `<section class="hero"><div class="when">${MONTHS[state.month-1]} ${state.year}</div>${hero}${paidNotes?`<div style="margin-top:10px">${paidNotes}</div>`:""}
+  let html = banner + `<section class="hero"><div class="when">${MONTHS[state.month-1]} ${state.year}</div>${hero}${paidNotes?`<details class="paylog"${state.payOpen?" open":""}><summary><span class="arr">▸</span> Payments this month <span class="cnt">${sum.payments.filter(p => state.isOwner || p.from===me || p.to===me).length}</span></summary><div class="paylist">${paidNotes}</div></details>`:""}
     <p class="sub">${bills.length ? `${money(total)} in house costs this month across ${bills.length} ${bills.length===1?"bill":"bills"}.` : "No bills yet for this month."}
     ${sum.unassigned && state.isOwner ? `<br><strong>${money(sum.unassigned)}</strong> of phone charges aren't assigned to anyone yet. Fix it in Entries or Settings.` : ""}</p>
     ${!state.isOwner && me ? whoPicker(false) : ""}
@@ -450,6 +458,7 @@ function renderMonth(banner){
   });
   app.querySelectorAll("[data-acct]").forEach(b => b.onclick = async () => { b.disabled = true; try { await payFromAccount(b.dataset.acct, `${state.year}-${pad(state.month)}`); } catch(x){ toast("Couldn't update the bills"); } b.disabled = false; });
   app.querySelectorAll("[data-stmt]").forEach(b => b.onclick = async () => { const t = b.textContent; b.disabled = true; b.textContent = "Building…"; try { await previewStatement(b.dataset.stmt, b, !!$("#stmtPhotos")?.checked, b.dataset.mode||"all"); } catch(x){ toast("Couldn't make the PDF"); } b.disabled = false; b.textContent = t; });
+  const pl = app.querySelector(".paylog"); if (pl) pl.addEventListener("toggle", () => { state.payOpen = pl.open; });
   app.querySelectorAll("[data-unpay]").forEach(b => b.onclick = () => confirmFirst(b, async () => { const x = state.expenses.find(e=>e.id===b.dataset.unpay); try { await track(`Removed payment ${x?`${x.from} → ${x.to} ${money(x.amount)}`:""}`, () => wDel("expenses/"+b.dataset.unpay)); toast("Payment removed"); } catch(e){ toast("Couldn't remove it"); } }));
 }
 
