@@ -1,0 +1,40 @@
+# Keeps the free Supabase project from being paused for inactivity (it pauses after about a week unused).
+# Every 3 days GitHub sends one small request to the database, using the public key from config.js.
+# The request can't read any data (only signed-in you can); it just counts as activity.
+# If Supabase doesn't answer (for example, the project was already paused), this run fails and GitHub emails you.
+name: Keep Supabase awake
+
+on:
+  schedule:
+    - cron: "17 9 */3 * *"   # 9:17 UTC on every third day of the month
+  workflow_dispatch:          # lets you run it by hand from the Actions tab
+
+permissions:
+  contents: read
+  actions: write              # used to keep this schedule switched on (see the last step)
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ping Supabase
+        run: |
+          URL=$(grep -o 'supabaseUrl: *"[^"]*"' config.js | sed 's/.*"\(.*\)"/\1/')
+          KEY=$(grep -o 'supabaseAnonKey: *"[^"]*"' config.js | sed 's/.*"\(.*\)"/\1/')
+          code=$(curl -s -o body.txt -w "%{http_code}" "$URL/rest/v1/docs?select=path&limit=1" -H "apikey: $KEY")
+          echo "Supabase answered with HTTP $code: $(head -c 200 body.txt)"
+          # Logged-out visitors aren't allowed to read the table, so the database answers "permission denied" (42501).
+          # That answer still comes from the database itself, which is what proves the project is awake.
+          if [ "$code" != "200" ] && ! grep -q '"42501"' body.txt; then
+            echo "::error::Supabase didn't answer normally (HTTP $code). Open supabase.com and check whether the project is paused; if so, click Restore."
+            exit 1
+          fi
+
+      # GitHub switches off scheduled jobs in repositories with no changes for 60 days.
+      # Re-enabling this workflow each run resets that timer, so it keeps going on its own.
+      - name: Keep this schedule switched on
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh api -X PUT "repos/${{ github.repository }}/actions/workflows/keep-supabase-awake.yml/enable" || true
