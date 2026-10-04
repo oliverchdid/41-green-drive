@@ -1,0 +1,1830 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>41 Green Drive Expenses</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="41 Green Drive">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏠</text></svg>">
+<script src="config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<style>
+:root{
+  --bg:#EEF2F0; --surface:#FFFFFF; --sunk:#F6F8F7; --ink:#18222D; --muted:#5A6672; --line:#D5DDD9;
+  --accent:#17664F; --accent-ink:#FFFFFF; --owe:#B3261E; --owed:#17664F; --warn-bg:#FFF4D6; --warn-ink:#6B4B00;
+  --c-oil:#E08A2E; --c-elec:#F2B134; --c-net:#8E6CDF; --c-water:#17A2B8; --c-other:#9AA5B1; --c-phone:#E4572E; --c-personal:#4A5568; --c-mort:#3B6FD8; --c-car:#2BAE66;
+  --addbill:#C62828; --paybtn:#1E7D32; --radius-lg:14px; --radius-sm:8px;
+  box-sizing:border-box; padding-top:env(safe-area-inset-top,0px); padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0F1518; --surface:#172026; --sunk:#12191D; --ink:#E4EBE8; --muted:#93A1A8; --line:#2A363C;
+    --accent:#4CC39A; --accent-ink:#0B1A14; --owe:#FF8A80; --owed:#4CC39A; --warn-bg:#3A300F; --warn-ink:#F4D98A;
+    --c-oil:#EDA25A; --c-elec:#F6C55D; --c-net:#B39AF0; --c-water:#4CC9DB; --c-other:#A9B4C0; --c-phone:#F07B57; --c-personal:#8FA3B8; --c-mort:#6E9BF0; --c-car:#5CCF8F;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0F1518; --surface:#172026; --sunk:#12191D; --ink:#E4EBE8; --muted:#93A1A8; --line:#2A363C;
+  --accent:#4CC39A; --accent-ink:#0B1A14; --owe:#FF8A80; --owed:#4CC39A; --warn-bg:#3A300F; --warn-ink:#F4D98A;
+  --c-oil:#EDA25A; --c-elec:#F6C55D; --c-net:#B39AF0; --c-water:#4CC9DB; --c-other:#A9B4C0; --c-phone:#F07B57; --c-personal:#8FA3B8; --c-mort:#6E9BF0; --c-car:#5CCF8F;
+}
+*,*::before,*::after{box-sizing:inherit}
+[hidden]{display:none!important}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Aptos,"Aptos Display","Segoe UI Variable","Segoe UI",system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;font-size:15px;line-height:1.5;font-variant-numeric:tabular-nums}
+button,input,select,textarea{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px 64px}
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+.topin{max-width:980px;margin:0 auto;padding:10px 18px 12px;display:grid;grid-template-columns:1fr auto;grid-template-areas:"brand gear" "tabs actions" "period period";gap:8px 12px;align-items:center}
+.brand{grid-area:brand}.icons{grid-area:gear;display:flex;gap:8px;justify-self:end}.actions{grid-area:actions;display:flex;gap:8px;justify-content:flex-end}
+.actions .addbill,.actions .paybtn{width:136px;display:inline-flex;align-items:center;justify-content:center;text-align:center;padding-left:0;padding-right:0}
+.paybtn{display:inline-flex;align-items:center;justify-content:center;text-align:center}
+.paybtn{border:0;border-radius:999px;background:var(--paybtn);color:#fff;font-weight:800;letter-spacing:.02em;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.dlg{position:fixed;inset:0;z-index:30;background:rgba(8,12,14,.55);display:none;align-items:flex-end;justify-content:center;padding:16px 12px calc(16px + env(safe-area-inset-bottom,0px))}
+.dlg.open{display:flex}
+.dlg .card{background:var(--surface);color:var(--ink);border-radius:16px;width:100%;max-width:520px;padding:18px;max-height:90%;overflow:auto}
+.dlg h3{margin:0 0 4px;font-size:20px}
+@media (min-width:601px){.dlg{align-items:center}}
+.gear{justify-self:end;width:40px;height:40px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer}
+.gear[aria-current="page"]{background:var(--ink);color:var(--bg)}
+.addbill{justify-self:end;border:0;border-radius:999px;background:var(--addbill);color:#fff;font-weight:800;letter-spacing:.02em;padding:8px 14px;cursor:pointer;white-space:nowrap}
+.addbill[aria-current="page"]{box-shadow:0 0 0 2px var(--bg),0 0 0 4px var(--addbill)}
+.period{grid-area:period}
+.brand{font-weight:900;font-size:20px;letter-spacing:.01em;line-height:1.2}
+.brand span{color:var(--accent)}
+nav.tabs{display:flex;flex-wrap:wrap;gap:4px;min-width:0}
+nav.tabs button{border:0;background:transparent;padding:8px 12px;border-radius:999px;cursor:pointer;color:var(--muted);font-weight:600;white-space:nowrap}
+nav.tabs button[aria-current="page"]{background:var(--ink);color:var(--bg)}
+nav.tabs button:focus-visible,button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.period{display:flex;align-items:center;gap:6px}
+.period button{border:1px solid var(--line);background:var(--surface);border-radius:var(--radius-sm);width:34px;height:34px;cursor:pointer}
+.period .label{min-width:130px;text-align:center;font-weight:700}
+.banner{margin:16px 0;padding:12px 14px;border-radius:var(--radius-sm);background:var(--warn-bg);color:var(--warn-ink)}
+h2{font-size:15px;font-weight:700;margin:32px 0 10px;color:var(--muted)}
+.hero{margin:28px 0 8px}
+.hero .when{color:var(--muted);font-weight:600}
+.hero .statement{font-size:clamp(26px,5vw,40px);font-weight:800;line-height:1.15;letter-spacing:-.02em;margin:6px 0 0}
+.hero .statement .amt{color:var(--owe)}
+.hero .statement.settled{color:var(--muted)}
+.hero .sub{margin-top:10px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius-lg);padding:16px}
+.scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+table{border-collapse:collapse;width:100%;min-width:560px}
+th,td{text-align:right;padding:9px 10px;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}
+thead th{font-size:13px;color:var(--muted);font-weight:600}
+tfoot td{font-weight:700;border-bottom:0}
+.neg{color:var(--owe);font-weight:700}.pos{color:var(--owed);font-weight:700}
+.muted{color:var(--muted)}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600}
+.chip::before{content:"";width:9px;height:9px;border-radius:50%;background:var(--dot,var(--c-other))}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:120px 1fr 90px;gap:10px;align-items:center}
+.bar .track{height:12px;background:var(--sunk);border-radius:6px;overflow:hidden;display:flex}
+.bar .track i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:12px}
+.btn{border:1px solid var(--line);background:var(--surface);padding:9px 14px;border-radius:var(--radius-sm);cursor:pointer;font-weight:600}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.btn.danger{color:var(--owe)}
+.btn[disabled]{opacity:.55;cursor:default}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.drop{border:2px dashed var(--line);border-radius:var(--radius-lg);padding:34px 18px;text-align:center;background:var(--surface);cursor:pointer}
+.drop.over{border-color:var(--accent)}
+.drop strong{display:block;font-size:18px;margin-bottom:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+label.f{display:grid;gap:4px;font-size:13px;font-weight:600;color:var(--muted)}
+label.f input,label.f select,label.f textarea,td input,td select{padding:8px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--sunk);font-weight:500;color:var(--ink);width:100%}
+td input,td select{min-width:90px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--radius-sm);overflow:hidden}
+.seg button{border:0;background:var(--surface);padding:8px 12px;cursor:pointer;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.list{display:grid;gap:0}
+.item{display:grid;grid-template-columns:92px 1fr auto;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);align-items:center}
+.item .meta{font-size:13px;color:var(--muted)}
+.item .amt{font-weight:700;text-align:right}
+.item .acts{display:flex;gap:6px;justify-content:flex-end;margin-top:4px}
+.linkbtn{border:0;background:none;color:var(--accent);cursor:pointer;font-weight:600;padding:2px 4px}
+.linkbtn.danger{color:var(--owe)}
+.armed{background:var(--owe)!important;color:#fff!important;border-radius:999px;padding:3px 10px!important}
+.status{margin-top:12px;color:var(--muted)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.thumbs img{height:84px;border:1px solid var(--line);border-radius:6px;background:#fff}
+.check{padding:10px 12px;border-radius:var(--radius-sm);background:var(--sunk);margin-top:10px}
+.check.bad{background:var(--warn-bg);color:var(--warn-ink)}
+.empty{padding:26px;text-align:center;color:var(--muted)}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-weight:600;opacity:0;pointer-events:none;transition:opacity .2s}
+.toast.show{opacity:1}
+
+.pics{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.pics button{border:1px solid var(--line);padding:0;border-radius:6px;overflow:hidden;cursor:pointer;background:#fff;line-height:0}
+.pics img{height:52px;width:auto;display:block}
+.pics a.pdf{font-size:13px;font-weight:600;color:var(--accent);align-self:center}
+.pend{position:relative}
+.pend .x{position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:0;background:var(--owe);color:#fff;font-size:12px;line-height:20px;cursor:pointer;padding:0}
+.lb{position:fixed;inset:0;z-index:20;background:rgba(8,12,14,.92);display:none;align-items:center;justify-content:center;padding:calc(20px + env(safe-area-inset-top,0px)) 16px calc(20px + env(safe-area-inset-bottom,0px))}
+.lb.open{display:flex}
+.lb img{max-width:100%;max-height:100%;border-radius:6px;background:#fff}
+.lb .ctl{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;display:flex;gap:8px}
+.lb .ctl button{border:0;border-radius:999px;padding:8px 14px;font-weight:700;cursor:pointer;background:#fff;color:#111}
+.who{display:flex;align-items:center;gap:8px;margin-top:14px}
+.who select{padding:7px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--surface);font-weight:600}
+.settle{display:grid;gap:8px;margin-top:14px}
+.settle .ln{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.paidnote{font-size:13px;color:var(--owed);font-weight:600}
+.pv{position:fixed;inset:0;z-index:25;background:var(--bg);display:none;flex-direction:column;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+.pv.open{display:flex}
+.pv .bar2{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);background:var(--surface)}
+.pv .bar2 strong{margin-right:auto}
+.pv .pages{flex:1;overflow:auto;padding:16px;display:grid;gap:14px;justify-items:center}
+.pv canvas{max-width:100%;height:auto;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.18);border-radius:4px}
+.owers{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.ow{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:999px;padding:3px 4px 3px 10px;font-size:13px;background:var(--sunk)}
+.ow.done{border-color:var(--owed);color:var(--owed);font-weight:600}
+.ow button{border:0;background:var(--surface);border-radius:999px;padding:3px 9px;font-weight:700;cursor:pointer;color:var(--accent);font-size:12px}
+.ow.done button{color:var(--muted)}
+.accts table{min-width:0;width:100%}
+.show-sm{display:none}
+.obrow{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center;padding:10px 2px;border-bottom:1px solid var(--line)}
+.obrow:last-child{border-bottom:0}
+.obname{min-width:0}.obname .meta{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:12px;color:var(--muted)}
+.accts th,.accts td{padding:8px 6px}
+.acts2{display:flex;gap:6px;justify-content:flex-end}
+.btn.sm{padding:6px 12px;font-size:13px}
+/* iPhone zooms in when a text box smaller than 16px is tapped; keep form fields at 16px on phones */
+.donut{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center}
+.donut svg{width:180px;height:180px}
+.donut .dt1{font-size:17px;font-weight:800;fill:var(--ink)}
+.donut .dt2{font-size:11px;fill:var(--muted)}
+.legend2{display:grid;gap:8px}
+.lg{display:grid;grid-template-columns:1fr 46px auto;gap:10px;align-items:center}
+.lg .pct{font-weight:800;text-align:right}.lg .amtl{color:var(--muted);text-align:right;font-size:14px}
+@media (max-width:600px){.donut{grid-template-columns:1fr;justify-items:center}.donut svg{width:200px;height:200px}.legend2{width:100%}}
+@media (max-width:600px){input,select,textarea{font-size:16px!important}.dlg .card{max-height:85%;padding:16px}}
+@media (max-width:600px){.accts .hide-sm{display:none}.accts .show-sm{display:inline}.obrow{gap:6px}.obrow .amt{font-size:14px}.accts th,.accts td{padding:7px 3px;font-size:13px}.accts th{font-size:12px}.btn.sm{padding:5px 8px;font-size:12px}.acts2{gap:4px}
+.brand{font-size:17px}.topin{grid-template-areas:"brand gear" "actions actions" "tabs tabs" "period period"}.actions{justify-content:flex-start}.paybtn{padding:7px 10px;font-size:12px}.actions .addbill,.actions .paybtn{width:124px;padding-left:0;padding-right:0}nav.tabs{gap:2px}nav.tabs button{padding:6px 6px;font-size:13px}.addbill{padding:7px 10px;font-size:12px}.topin{padding:8px 10px 10px;gap:6px 6px}
+.bar{grid-template-columns:84px 1fr 78px}.item{grid-template-columns:70px 1fr}.item .right{grid-column:1/-1}}
+@media (prefers-reduced-motion: reduce){.toast{transition:none}}
+</style>
+</head>
+<body>
+<header class="top"><div class="topin">
+  <div class="brand">41 GREEN DRIVE EXPENSES</div>
+  <div class="icons"><button class="gear" data-view="history" aria-label="History" title="History"><svg viewBox="0 0 24 24" width="21" height="21" aria-hidden="true"><path fill="currentColor" d="M13 3a9 9 0 0 0-9 9H1l3.9 3.9L8.8 12H6a7 7 0 1 1 2.05 4.95l-1.42 1.42A9 9 0 1 0 13 3zm-1 5v5l4.25 2.52.77-1.28-3.52-2.09V8H12z"/></svg></button><button class="gear" data-view="settings" aria-label="Settings" title="Settings"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.14 12.94c.04-.31.06-.62.06-.94s-.02-.63-.06-.94l2.03-1.58a.5.5 0 0 0 .12-.64l-1.92-3.32a.5.5 0 0 0-.61-.22l-2.39.96a7.03 7.03 0 0 0-1.62-.94l-.36-2.54a.5.5 0 0 0-.5-.42h-3.84a.5.5 0 0 0-.5.42l-.36 2.54c-.59.24-1.13.56-1.62.94l-2.39-.96a.5.5 0 0 0-.61.22L2.71 8.84a.5.5 0 0 0 .12.64l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58a.5.5 0 0 0-.12.64l1.92 3.32c.13.22.39.3.61.22l2.39-.96c.49.38 1.03.7 1.62.94l.36 2.54c.05.24.26.42.5.42h3.84c.24 0 .45-.18.5-.42l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.48 0 .61-.22l1.92-3.32a.5.5 0 0 0-.12-.64l-2.03-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/></svg></button></div>
+  <nav class="tabs" aria-label="Sections" style="grid-area:tabs">
+    <button data-view="month">Month</button>
+    <button data-view="year">Year</button>
+    <button data-view="balances">Balances</button>
+    <button data-view="payments">Payments</button>
+    <button data-view="entries">Entries</button>
+  </nav>
+  <div class="actions"><button class="addbill" data-view="add">ADD BILL</button><button class="paybtn" id="payOpen" data-owner>ADD PAYMENT</button></div>
+  <div class="period" id="period">
+    <button id="prev" aria-label="Previous">‹</button>
+    <div class="label" id="periodLabel"></div>
+    <button id="next" aria-label="Next">›</button>
+  </div>
+</div></header>
+<main class="wrap" id="app"><p class="status">Loading your ledger…</p></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<div class="dlg" id="payDlg" role="dialog" aria-modal="true" aria-labelledby="payTitle"><div class="card"><h3 id="payTitle">Add payment</h3><p class="muted" style="margin:0 0 12px">Money someone paid you (or you paid them).</p><div id="payBody"></div></div></div>
+<div class="pv" id="pv" role="dialog" aria-modal="true" aria-label="PDF preview"><div class="bar2"><strong id="pvTitle">Preview</strong><button class="btn primary" id="pvShare">Share</button><button class="btn" id="pvSave">Save PDF</button><button class="btn" id="pvClose">Close</button></div><div class="pages" id="pvPages"></div></div>
+<div class="lb" id="lb" role="dialog" aria-modal="true" aria-label="Bill photo"><div class="ctl"><button id="lbPrev">Prev</button><button id="lbNext">Next</button><button id="lbClose">Close</button></div><img id="lbImg" alt="Bill"></div>
+
+<script>
+(() => {
+"use strict";
+const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
+const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
+const SPLIT_BY_LINES = "Split by lines";
+const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+const DOT = {"Mortgage":"var(--c-mort)","Car insurance":"var(--c-car)","Oil":"var(--c-oil)","Electricity":"var(--c-elec)","Internet":"var(--c-net)","Water":"var(--c-water)","Other Shared":"var(--c-other)","Phone":"var(--c-phone)","Not split":"var(--c-personal)","Payment":"var(--owed)"};
+const PRIVATE = "private/owner/personal";
+
+const $ = s => document.querySelector(s);
+const app = $("#app");
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const moneyShort = n => (n < 0 ? "-" : "") + "$" + Math.round(Math.abs(+n||0)).toLocaleString("en-US");
+const money = n => (n < 0 ? "-" : "") + "$" + Math.abs(+n || 0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const r2 = n => Math.round((+n || 0) * 100) / 100;
+const today = new Date();
+const pad = n => String(n).padStart(2,"0");
+const isoToday = `${today.getFullYear()}-${pad(today.getMonth()+1)}-${pad(today.getDate())}`;
+const signed = {};
+const blobUrl = id => signed[id] || "";
+const ls = { get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } }, set(k,v){ try { localStorage.setItem(k,v); } catch(e){} } };
+
+const state = {
+  view: "month", year: today.getFullYear(), month: today.getMonth()+1,
+  settings: null, expenses: [], personal: [], db: null, sample: null, downloads: null, assets: null,
+  isOwner: false, asPerson: ls.get("hl-as") || "", ready: false,
+  draft: null, images: [], pdfs: [], entriesScope: "month", migrated: false
+};
+
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
+function fallbackSettings(){ return { me:"Me", people:["Me"], splits:Object.fromEntries(SHARED.map(c=>[c,{Me:100}])), lines:[], personalCategories:PERSONAL_DEFAULT }; }
+const S = () => state.settings || fallbackSettings();
+const ME = () => state.isOwner ? S().me : (S().people.includes(state.asPerson) ? state.asPerson : "");
+const allVisible = () => [...state.expenses, ...state.personal];
+
+// ---------- lightbox ----------
+const lb = { list:[], i:0 };
+function openLb(list, i){ lb.list = list; lb.i = i; $("#lbImg").src = blobUrl(list[i]); $("#lb").classList.add("open"); $("#lbPrev").hidden = $("#lbNext").hidden = list.length < 2; $("#lbClose").focus(); }
+function lbStep(d){ lb.i = (lb.i + d + lb.list.length) % lb.list.length; $("#lbImg").src = blobUrl(lb.list[lb.i]); }
+$("#lbClose").onclick = () => $("#lb").classList.remove("open");
+$("#lbPrev").onclick = () => lbStep(-1); $("#lbNext").onclick = () => lbStep(1);
+$("#lb").onclick = e => { if (e.target.id === "lb") $("#lb").classList.remove("open"); };
+document.addEventListener("keydown", e => { if (!$("#lb").classList.contains("open")) return; if (e.key==="Escape") $("#lb").classList.remove("open"); if (e.key==="ArrowRight") lbStep(1); if (e.key==="ArrowLeft") lbStep(-1); });
+function picsHtml(e){
+  const ph = e.photos || []; if (!ph.length && !e.pdf) return "";
+  return `<div class="pics">${ph.map((id,i)=>`<button data-lb="${esc(e.id)}" data-i="${i}" aria-label="Open bill photo ${i+1}"><img src="${blobUrl(id)}" alt="" loading="lazy"></button>`).join("")}${e.pdf?`<a class="pdf" href="${blobUrl(e.pdf)}" target="_blank" rel="noopener">Full PDF</a>`:""}</div>`;
+}
+function wirePics(){ app.querySelectorAll("[data-lb]").forEach(b => b.onclick = () => { const e = allVisible().find(x=>x.id===b.dataset.lb); if (e) openLb(e.photos, +b.dataset.i); }); }
+
+// ---------- math ----------
+function lineCounts(){
+  const counts = {}; S().people.forEach(p => counts[p]=0);
+  (S().lines||[]).forEach(l => { if (l.type==="Phone" && counts[l.assignedTo] !== undefined) counts[l.assignedTo]++; });
+  return counts;
+}
+function sharesOf(e){
+  const out = {}; const s = S();
+  const add = (p,v) => { out[p] = (out[p]||0) + v; };
+  if (e.fixedShares && e.kind === "shared"){ s.people.forEach(p => add(p, +e.fixedShares[p]||0)); return out; }
+  if (e.kind === "shared"){
+    const sp = (s.splits||{})[e.category] || {};
+    s.people.forEach(p => add(p, (+e.amount||0) * ((+sp[p]||0)/100)));
+  } else if (e.kind === "personal"){
+    add(e.paidBy || s.me, +e.amount||0);
+  } else if (e.kind === "phone"){
+    const counts = lineCounts(); const tot = Object.values(counts).reduce((a,b)=>a+b,0);
+    (e.lines||[]).forEach(l => {
+      const amt = +l.amount||0;
+      if (l.assignedTo === SPLIT_BY_LINES){
+        if (tot > 0) Object.entries(counts).forEach(([p,c]) => c && add(p, amt*c/tot));
+        else { const owners=[...new Set((e.lines||[]).map(x=>x.assignedTo).filter(x=>s.people.includes(x)))]; owners.forEach(p=>add(p, amt/owners.length)); if(!owners.length) add("Unassigned", amt); }
+      } else if (s.people.includes(l.assignedTo)) add(l.assignedTo, amt);
+      else add("Unassigned", amt);
+    });
+  }
+  return out;
+}
+const EXTRA_COLORS = ["#E86A92","#14B8A6","#C084FC","#84CC16","#F97316"];
+function catList(list){
+  const extra = [...new Set(list.filter(e=>e.kind==="shared" && !SHARED.includes(e.category)).map(e=>e.category))].sort();
+  extra.forEach((c,i) => { if (!DOT[c]) DOT[c] = EXTRA_COLORS[Object.keys(DOT).length % EXTRA_COLORS.length]; });
+  return [...SHARED, ...extra, "Phone"];
+}
+const shortDate = iso => { if (!/^\d{4}-\d{2}-\d{2}$/.test(iso||"")) return ""; const [y,m,d] = iso.split("-").map(Number); return `${MONTHS[m-1].slice(0,3)} ${d}`; };
+const serviceText = e => (e.serviceFrom && e.serviceTo) ? `${shortDate(e.serviceFrom)} - ${shortDate(e.serviceTo)}${e.serviceTo.slice(0,4)!==e.serviceFrom.slice(0,4)?", "+e.serviceTo.slice(0,4):""}` : "";
+const periodOf = e => (e.period && /^\d{4}-\d{2}$/.test(e.period)) ? e.period : (e.date ? e.date.slice(0,7) : "");
+const inMonth = (e,y,m) => periodOf(e) === `${y}-${pad(m)}`;
+const inYear = (e,y) => periodOf(e).slice(0,4) === String(y);
+
+function summarize(list){
+  const s = S(); const people = s.people;
+  const blank = () => Object.fromEntries(people.map(p=>[p,0]));
+  const res = { house:blank(), phone:blank(), paid:blank(), settled:blank(), marked:blank(), own:blank(), cat:{}, personal:0, personalByCat:{}, unassigned:0, payments:[],
+                byPersonCat:Object.fromEntries(people.map(p=>[p,{}])), totals:{shared:0,phone:0,personal:0} };
+  list.forEach(e => {
+    const amt = +e.amount || 0;
+    if (e.kind === "payment"){
+      res.payments.push(e);
+      if (e.from === S().me){
+        if (res.settled[e.from] !== undefined) res.settled[e.from] += amt;
+        if (res.settled[e.to] !== undefined) res.settled[e.to] -= amt;
+      }
+      return;
+    }
+    if (e.kind === "personal"){
+      res.personal += amt; res.totals.personal += amt;
+      res.personalByCat[e.category||"Other"] = (res.personalByCat[e.category||"Other"]||0) + amt;
+      return;
+    }
+    const sh = sharesOf(e);
+    const bucket = e.kind === "phone" ? res.phone : res.house;
+    const catKey = e.kind === "phone" ? "Phone" : e.category;
+    res.cat[catKey] = (res.cat[catKey]||0) + amt;
+    if (e.kind === "phone") res.totals.phone += amt; else res.totals.shared += amt;
+    Object.entries(sh).forEach(([p,v]) => {
+      if (p === "Unassigned") { res.unassigned += v; return; }
+      if (bucket[p] === undefined) return;
+      bucket[p] += v; res.byPersonCat[p][catKey] = (res.byPersonCat[p][catKey]||0) + v;
+    });
+    if (res.paid[e.paidBy] !== undefined) res.paid[e.paidBy] += amt;
+    if (res.own[e.paidBy] !== undefined) res.own[e.paidBy] += sh[e.paidBy]||0;   // their own part of a bill they paid is already covered
+    Object.keys(e.paidOff||{}).forEach(p => { const v = sh[p]||0; if (p===e.paidBy || v<=0.004 || res.settled[p]===undefined) return; res.settled[p] += v; res.marked[p] += v; if (res.settled[e.paidBy]!==undefined) res.settled[e.paidBy] -= v; });
+  });
+  res.owes = Object.fromEntries(people.map(p=>[p, res.house[p]+res.phone[p]]));
+  // for everyone but you: what's still owed on their bills (money they paid in, or bills they covered, sits in their account)
+  const me = S().me;
+  res.balance = Object.fromEntries(people.map(p=>[p, p===me ? res.paid[p]+res.settled[p]-res.owes[p] : res.marked[p]+res.own[p]-res.owes[p]]));
+  res.base = Object.fromEntries(people.map(p=>[p, p===me ? res.paid[p]-res.owes[p] : res.own[p]-res.owes[p]]));
+  return res;
+}
+function settleUp(balance){
+  // everything goes through you: each person either owes you, or you owe them
+  const me = S().me; const out = [];
+  Object.entries(balance).forEach(([p, v]) => {
+    if (p === me) return;
+    if (v < -0.005) out.push({from:p, to:me, amt:r2(-v)});
+    else if (v > 0.005) out.push({from:me, to:p, amt:r2(v)});
+  });
+  // people who owe you first (in the list order), anything you owe at the end
+  const order = S().people;
+  const who = m => m.from === me ? m.to : m.from;
+  return out.sort((x,y) => ((x.from===me) - (y.from===me)) || (order.indexOf(who(x)) - order.indexOf(who(y))));
+}
+
+// ---------- shell ----------
+function setView(v){ state.view = v; render(); window.scrollTo({top:0}); }
+document.querySelectorAll("header [data-view]").forEach(b => b.addEventListener("click", () => { if (b.dataset.view==="add" && !(state.draft && state.draft.id)) { /* keep any unsaved new draft */ } setView(b.dataset.view); }));
+$("#prev").onclick = () => { if (state.view==="year" || ((state.view==="entries" || state.view==="payments") && state.entriesScope==="year")){state.year--;} else {state.month--; if(state.month<1){state.month=12;state.year--;}} render(); };
+$("#next").onclick = () => { if (state.view==="year" || ((state.view==="entries" || state.view==="payments") && state.entriesScope==="year")){state.year++;} else {state.month++; if(state.month>12){state.month=1;state.year++;}} render(); };
+
+function render(){
+  document.querySelectorAll("header [data-view]").forEach(b => {
+    b.hidden = !state.isOwner && ["add","settings","history"].includes(b.dataset.view);
+    b.setAttribute("aria-current", b.dataset.view===state.view ? "page" : "false");
+  });
+  document.querySelectorAll("[data-owner]").forEach(b => b.hidden = !state.isOwner || !state.db);
+  if (!state.isOwner && ["add","settings","history"].includes(state.view)) state.view = "month";
+  const showPeriod = ["month","year","entries","payments"].includes(state.view);
+  $("#period").style.visibility = showPeriod ? "visible" : "hidden";
+  $("#periodLabel").textContent = state.view==="year" || ((state.view==="entries" || state.view==="payments") && state.entriesScope==="year") ? String(state.year) : `${MONTHS[state.month-1]} ${state.year}`;
+  let banner = !state.db ? `<div class="banner">Connecting to your data…</div>` : "";
+  if (state.db && !state.isOwner && !ME()) banner += whoPicker(true);
+  ({month:renderMonth, year:renderYear, add:renderAdd, entries:renderEntries, settings:renderSettings, balances:renderBalances, payments:renderPayments, history:renderHistory}[state.view])(banner);
+  const w = $("#whoSel"); if (w) w.onchange = () => { state.asPerson = w.value; ls.set("hl-as", w.value); render(); };
+  wirePics();
+}
+function whoPicker(prompt){
+  const s = S();
+  return `<div class="${prompt?"banner":"who"}">${prompt?"Pick your name to see what you owe. ":""}<label class="who" style="margin:${prompt?"8px 0 0":"0"}">Showing<select id="whoSel"><option value="">Choose…</option>${s.people.filter(p=>p!==s.me).map(p=>`<option ${p===state.asPerson?"selected":""}>${esc(p)}</option>`).join("")}</select></label></div>`;
+}
+
+// ---------- Month ----------
+function monthPayDate(){ const last = new Date(state.year, state.month, 0).getDate(); const d = (today.getFullYear()===state.year && today.getMonth()+1===state.month) ? today.getDate() : last; return `${state.year}-${pad(state.month)}-${pad(d)}`; }
+
+function collection(sum, me){
+  const exp = {}, left = {};
+  settleUp(sum.base).filter(m=>m.to===me).forEach(m => exp[m.from] = (exp[m.from]||0) + m.amt);
+  settleUp(sum.balance).filter(m=>m.to===me).forEach(m => left[m.from] = (left[m.from]||0) + m.amt);
+  const people = [...new Set([...Object.keys(exp), ...Object.keys(left)])];
+  const rows = people.map(p => ({p, expected:r2(exp[p]||0), left:r2(left[p]||0), got:r2(Math.max(0,(exp[p]||0)-(left[p]||0)))}));
+  const t = k => r2(rows.reduce((a,r)=>a+r[k],0));
+  return {rows, expected:t("expected"), got:t("got"), left:t("left")};
+}
+// round chart with each category's share of the month
+function donutHtml(pairs){
+  const items = pairs.filter(([,v]) => v > 0.004); const total = items.reduce((a,[,v]) => a+v, 0);
+  if (!total) return `<p class="muted" style="margin:0">No bills yet for this month.</p>`;
+  const R = 70, C = 2*Math.PI*R; let off = 0;
+  const gap = items.length > 1 ? 2 : 0;
+  const arcs = `<circle r="${R}" cx="90" cy="90" fill="none" stroke="var(--sunk)" stroke-width="28"/>` + items.map(([c,v]) => { const len = v/total*C; const vis = Math.max(0.5, len - gap); const seg = `<circle r="${R}" cx="90" cy="90" fill="none" stroke="${DOT[c]||"var(--c-other)"}" stroke-width="28" stroke-dasharray="${vis.toFixed(2)} ${(C-vis).toFixed(2)}" stroke-dashoffset="${(-off).toFixed(2)}" transform="rotate(-90 90 90)"><title>${esc(c==="Other Shared"?"Other":c)}: ${money(v)}</title></circle>`; off += len; return seg; }).join("");
+  const legend = items.sort((x,y) => y[1]-x[1]).map(([c,v]) => `<div class="lg"><span class="chip" style="--dot:${DOT[c]||"var(--c-other)"}">${esc(c==="Other Shared"?"Other":c)}</span><span class="pct">${Math.round(v/total*100)}%</span><span class="amtl">${money(v)}</span></div>`).join("");
+  return `<div class="donut"><svg viewBox="0 0 180 180" role="img" aria-label="Share of this month's house costs by category">${arcs}<text x="90" y="86" text-anchor="middle" class="dt1">${money(total)}</text><text x="90" y="106" text-anchor="middle" class="dt2">this month</text></svg><div class="legend2">${legend}</div></div>`;
+}
+function renderMonth(banner){
+  const list = allVisible().filter(e=>inMonth(e,state.year,state.month));
+  const sum = summarize(list); const s = S(); const me = ME();
+  const bills = list.filter(e=>e.kind!=="payment");
+  const moves = settleUp(sum.balance);
+  let hero;
+  if (state.isOwner){
+    const lines = moves.map((m,i)=>{
+      const who = m.to===me ? `${esc(m.from)} owes you <span class="amt">${money(m.amt)}</span>` : `${esc(m.from===me?"You":m.from)} ${m.from===me?"owe":"owes"} ${esc(m.to)} <span class="amt">${money(m.amt)}</span>`;
+      const acct = m.to===me ? accountOf(m.from, `${state.year}-${pad(state.month)}`).account : 0;
+      return `<div class="ln"><span class="statement" style="margin:0">${who}</span>${state.db?`<button class="btn" data-pay="${i}">Mark paid</button>`:""}${m.to===me ? `<span class="muted" style="font-size:14px">${acct>0.005 ? `${money(acct)} in account` : "Nothing in account"}</span>` : ""}</div>`;
+    });
+    const inMoves = new Set(moves.map(m => m.from===me ? m.to : m.from));
+    const extra = S().people.filter(p => p!==me && !inMoves.has(p)).map(p => ({p, a:accountOf(p, `${state.year}-${pad(state.month)}`)})).filter(x => x.a.account > 0.005);
+    extra.forEach(x => lines.push(`<div class="ln"><span class="statement" style="margin:0;color:var(--ink)">${esc(x.p)} is paid up for ${MONTHS[state.month-1]}</span>${x.a.unpaid > 0.005 ? `<button class="btn" data-acct="${esc(x.p)}">Pay older bills</button>` : ""}<span class="muted" style="font-size:14px">${money(x.a.account)} in account</span></div>`));
+    hero = lines.length ? `<div class="settle">${lines.join("")}</div>` : `<p class="statement settled">${bills.length?"Everyone is square for this month.":"Nothing owed yet."}</p>`;
+  } else if (me){
+    const mine = moves.filter(m=>m.from===me), owed = moves.filter(m=>m.to===me);
+    hero = mine.length ? `<p class="statement">${mine.map(m=>`You owe ${esc(m.to)} <span class="amt">${money(m.amt)}</span>`).join("<br>")}</p>`
+         : owed.length ? `<p class="statement" style="color:var(--owed)">${owed.map(m=>`${esc(m.from)} owes you ${money(m.amt)}`).join("<br>")}</p>`
+         : `<p class="statement settled">You're all paid up for this month.</p>`;
+  } else hero = `<p class="statement settled">Pick your name above.</p>`;
+  const total = sum.totals.shared + sum.totals.phone + sum.totals.personal;
+  const paidNotes = sum.payments.filter(p => state.isOwner || p.from===me || p.to===me).map(p=>`<div class="paidnote">${esc(p.from)} paid ${esc(p.to)} ${money(p.amount)} on ${MONTHS[+p.date.slice(5,7)-1].slice(0,3)} ${+p.date.slice(8,10)}${state.isOwner?` <button class="linkbtn danger" data-unpay="${esc(p.id)}">Undo</button>`:""}</div>`).join("");
+  let html = banner + `<section class="hero"><div class="when">${MONTHS[state.month-1]} ${state.year}</div>${hero}${paidNotes?`<div style="margin-top:10px">${paidNotes}</div>`:""}
+    <p class="sub">${bills.length ? `${money(total)} in house costs this month across ${bills.length} ${bills.length===1?"bill":"bills"}.` : "No bills yet for this month."}
+    ${sum.unassigned && state.isOwner ? `<br><strong>${money(sum.unassigned)}</strong> of phone charges aren't assigned to anyone yet. Fix it in Entries or Settings.` : ""}</p>
+    ${!state.isOwner && me ? whoPicker(false) : ""}
+    ${!bills.length && state.isOwner ? `<p><button class="btn primary" data-go="add">Add a bill</button></p>` : ""}</section>`;
+
+  if (!state.isOwner && me){
+    const mineBills = bills.filter(e => (sharesOf(e)[me]||0) > 0.004).sort((a,b)=>a.date.localeCompare(b.date));
+    html += `<h2>Your part of each bill</h2><div class="panel">${mineBills.length ? `<div class="list">` + mineBills.map(e => itemHtml(e, me)).join("") + `</div>
+      <div class="check" style="margin-top:12px"><strong>Your total this month: ${money(sum.owes[me])}</strong>${sum.paid[me]?` · you paid ${money(sum.paid[me])} of the bills yourself`:""}${sum.settled[me]?` · you've sent ${money(sum.settled[me])}`:""}</div>` : `<div class="empty">Nothing assigned to you this month.</div>`}</div>`;
+  }
+  if (state.isOwner){
+    const c = collection(sum, me);
+    html += `<h2>What you collect for ${MONTHS[state.month-1]}</h2><div class="panel">${c.rows.length ? `<div class="scroll"><table style="min-width:0"><thead><tr><th>From</th><th>Total due</th><th>Received</th><th>Still to collect</th></tr></thead><tbody>${c.rows.map(r=>`<tr><td>${esc(r.p)}</td><td>${money(r.expected)}</td><td>${r.got?`<span class="pos">${money(r.got)}</span>`:'<span class="muted">—</span>'}</td><td class="${r.left>0.005?'neg':''}">${r.left>0.005?money(r.left):"✓ paid"}</td></tr>`).join("")}</tbody>
+      <tfoot><tr><td>Total</td><td>${money(c.expected)}</td><td>${money(c.got)}</td><td>${money(c.left)}</td></tr></tfoot></table></div>` : `<p class="muted" style="margin:0">Nobody owes you for this month.</p>`}</div>`;
+  }
+  html += `<h2>Who owes what this month</h2><div class="panel scroll"><table><thead><tr><th>Person</th><th>House bills</th><th>Phones</th><th>Their part</th><th>Paid</th><th>Still owed</th><th>In account</th></tr></thead><tbody>`;
+  s.people.filter(p => p!==me).forEach(p => { const b = sum.balance[p]; const acct = state.isOwner ? accountOf(p).account : 0;
+    html += `<tr><td>${esc(p)}</td><td>${money(sum.house[p])}</td><td>${money(sum.phone[p])}</td><td>${money(sum.owes[p])}</td><td>${(sum.marked[p]+sum.own[p])>0.004?`<span class="pos">${money(sum.marked[p]+sum.own[p])}</span>`:'<span class="muted">—</span>'}</td><td class="${b< -0.005?'neg':''}">${b< -0.005?money(-b):'<span class="pos">✓</span>'}</td><td>${acct>0.005?money(acct):'<span class="muted">—</span>'}</td></tr>`; });
+  html += `</tbody></table><p class="muted" style="margin:10px 0 0;font-size:13px">“In account” is money they've paid in, or bills they covered for the house, not yet used. Tap Mark paid to use it.</p></div>`;
+  if (state.isOwner) html += statementsPanel(sum);
+  const cats = catList(list); const maxCat = Math.max(1, sum.personal, ...cats.map(c=>sum.cat[c]||0));
+  html += `<h2>Where the money went</h2><div class="panel">${donutHtml([...cats.map(c => [c, sum.cat[c]||0]), ...(state.isOwner ? [["Not split", sum.personal]] : [])])}</div>`;
+  app.innerHTML = html; wireGo();
+  app.querySelectorAll("[data-pay]").forEach(b => b.onclick = async () => {
+    const m = moves[+b.dataset.pay]; if (!m) return;
+    if (m.to === me){ b.disabled = true; try { await payFromAccount(m.from, `${state.year}-${pad(state.month)}`); } catch(x){ toast("Couldn't update the bills"); } b.disabled = false; return; }
+    if (b.dataset.confirm !== "1"){ b.dataset.confirm="1"; b.textContent = `Confirm you paid ${m.to} ${money(m.amt)}`; return; }
+    b.disabled = true;
+    try { await track(`You paid ${m.to} ${money(m.amt)}`, () => wAdd("expenses", {kind:"payment", from:m.from, to:m.to, amount:m.amt, date:isoToday, period:`${state.year}-${pad(state.month)}`, updatedAt:new Date().toISOString()})); toast("Payment recorded"); }
+    catch(e){ b.disabled=false; toast("Couldn't record the payment"); }
+  });
+  app.querySelectorAll("[data-acct]").forEach(b => b.onclick = async () => { b.disabled = true; try { await payFromAccount(b.dataset.acct, `${state.year}-${pad(state.month)}`); } catch(x){ toast("Couldn't update the bills"); } b.disabled = false; });
+  app.querySelectorAll("[data-stmt]").forEach(b => b.onclick = async () => { const t = b.textContent; b.disabled = true; b.textContent = "Building…"; try { await previewStatement(b.dataset.stmt, b, !!$("#stmtPhotos")?.checked, b.dataset.mode||"all"); } catch(x){ toast("Couldn't make the PDF"); } b.disabled = false; b.textContent = t; });
+  app.querySelectorAll("[data-unpay]").forEach(b => b.onclick = () => confirmFirst(b, async () => { const x = state.expenses.find(e=>e.id===b.dataset.unpay); try { await track(`Removed payment ${x?`${x.from} → ${x.to} ${money(x.amount)}`:""}`, () => wDel("expenses/"+b.dataset.unpay)); toast("Payment removed"); } catch(e){ toast("Couldn't remove it"); } }));
+}
+
+// Two-step confirm: first tap turns the button into "Yes, undo", second tap does it. Resets after 5 seconds.
+function confirmFirst(b, action){
+  if (b.dataset.armed === "1"){ clearTimeout(b._t); b.dataset.armed = ""; action(); return; }
+  b.dataset.armed = "1"; b._label = b.textContent; b.textContent = "Yes, undo"; b.classList.add("armed");
+  b._t = setTimeout(() => { b.dataset.armed = ""; b.textContent = b._label; b.classList.remove("armed"); }, 5000);
+}
+function owersHtml(e){
+  const sh = sharesOf(e); const people = S().people.filter(p => p!==e.paidBy && (sh[p]||0) > 0.004);
+  if (!people.length) return "";
+  return `<div class="owers">${people.map(p => { const d = (e.paidOff||{})[p];
+    return d ? `<span class="ow done">✓ ${esc(p)} paid ${money(sh[p])} · ${esc(shortDate(d))}<button data-unpaidbill="${esc(e.id)}" data-p="${esc(p)}" aria-label="Undo ${esc(p)} paid">Undo</button></span>`
+             : `<span class="ow">${esc(p)} owes ${money(sh[p])}<button data-paidbill="${esc(e.id)}" data-p="${esc(p)}">Mark paid</button></span>`; }).join("")}</div>`;
+}
+async function setBillPaid(id, person, on){
+  const e = state.expenses.find(x=>x.id===id); if (!e || !state.db) return;
+  const {id:_, ...body} = e; const paidOff = {...(e.paidOff||{})};
+  if (on) paidOff[person] = isoToday; else delete paidOff[person];
+  const nm = `${e.kind==="phone"?"Phone":e.category==="Other Shared"?"Other":e.category}${e.vendor&&e.vendor!==e.category?" - "+e.vendor:""} (${periodLabel(periodOf(e))})`;
+  try { await track(on ? `Marked ${person}'s part of ${nm} paid` : `Marked ${person}'s part of ${nm} unpaid`, () => wSet("expenses/"+id, {...JSON.parse(JSON.stringify(body)), paidOff, updatedAt:new Date().toISOString()})); toast(on ? `${person}'s part marked paid` : "Marked unpaid"); }
+  catch(x){ toast("Couldn't update the bill"); }
+}
+function wireOwers(){
+  app.querySelectorAll("[data-paidbill]").forEach(b => b.onclick = () => {
+    const who = b.dataset.p, e = state.expenses.find(x=>x.id===b.dataset.paidbill); if (!e) return;
+    if (who !== S().me){ const need = sharesOf(e)[who]||0; const a = accountOf(who).account;
+      if (a + 0.005 < need){ toast(`${who}'s account has ${money(Math.max(0,a))}. Add their payment first.`); openPay(who, r2(need - Math.max(0,a))); return; } }
+    b.disabled = true; setBillPaid(b.dataset.paidbill, who, true); });
+  app.querySelectorAll("[data-unpaidbill]").forEach(b => b.onclick = () => confirmFirst(b, () => { b.disabled = true; setBillPaid(b.dataset.unpaidbill, b.dataset.p, false); }));
+}
+function itemHtml(e, forPerson){
+  const label = e.kind==="phone" ? "Phone" : e.kind==="personal" ? "Not split" : e.category;
+  const dot = e.kind==="personal" ? DOT["Not split"] : DOT[label] || DOT["Other Shared"];
+  const [,m,dd] = e.date.split("-");
+  let detail;
+  if (e.kind==="phone"){
+    const mine = forPerson ? (e.lines||[]).filter(l=>l.assignedTo===forPerson) : [];
+    detail = forPerson ? `${mine.map(l=>`•${esc(l.last4)} ${money(l.amount)}`).join(", ")}${(e.lines||[]).some(l=>l.assignedTo===SPLIT_BY_LINES)?" + share of account charges":""}` : `${(e.lines||[]).length} lines · paid by ${esc(e.paidBy)}`;
+  } else detail = e.kind==="personal" ? esc(e.category) : `Paid by ${esc(e.paidBy)}`;
+  const share = forPerson ? (sharesOf(e)[forPerson]||0) : null;
+  return `<div class="item"><div class="muted">${MONTHS[+m-1].slice(0,3)} ${+dd}</div>
+    <div><span class="chip" style="--dot:${dot}">${esc(label==="Other Shared"?"Other":label)}</span> ${esc(e.vendor||"")}<div class="meta">${serviceText(e)?`Covers ${esc(serviceText(e))} · `:""}${detail}${e.kind!=="personal"?` · Collect in ${periodLabel(periodOf(e))}`:""}${e.notes?` · ${esc(e.notes)}`:""}</div>${picsHtml(e)}
+    ${state.isOwner && !forPerson && e.kind!=="personal" && e.kind!=="payment" ? owersHtml(e) : ""}
+    ${forPerson && (e.paidOff||{})[forPerson] ? `<div class="paidnote">Your part paid ${esc(shortDate(e.paidOff[forPerson]))}</div>` : ""}</div>
+    <div class="right"><div class="amt">${share!==null?money(share):money(e.amount)}</div>${share!==null?`<div class="meta" style="text-align:right">of ${money(e.amount)}</div>`:""}
+    ${state.isOwner && !forPerson ? `<div class="acts">${e.recurringId?`<button class="linkbtn" data-go="settings">Monthly · change in Settings</button>`:`<button class="linkbtn" data-edit="${esc(e.id)}">Edit</button>`}<button class="linkbtn danger" data-rm="${esc(e.id)}">Delete</button></div>` : ""}</div></div>`;
+}
+
+// ---------- Year ----------
+function renderYear(banner){
+  const list = allVisible().filter(e=>inYear(e,state.year));
+  const sum = summarize(list); const s = S(); const me = ME();
+  const cats = catList(list);
+  const houseTotal = sum.totals.shared + sum.totals.phone + sum.totals.personal;
+  let hero;
+  if (state.isOwner){
+    const myTotal = (sum.owes[me]||0) + sum.totals.personal;
+    hero = `<p class="statement" style="color:var(--ink)">The house has cost you ${money(myTotal)}</p>
+      <p class="sub">Your share of shared bills ${money(sum.house[me]||0)}, your phones ${money(sum.phone[me]||0)}, and ${money(sum.totals.personal)} you paid alone. The whole house cost ${money(houseTotal)} this year.</p>`;
+  } else if (me){
+    const b = sum.balance[me]||0;
+    hero = `<p class="statement" style="color:var(--ink)">Your share this year: ${money(sum.owes[me])}</p>
+      <p class="sub">House bills ${money(sum.house[me])}, phones ${money(sum.phone[me])}. ${Math.abs(b)<0.005?"You're all settled up.":b<0?`Still owed for the year: <strong>${money(-b)}</strong>.`:`You've paid ${money(b)} more than your share.`}</p>`;
+  } else hero = `<p class="statement settled">Pick your name above.</p>`;
+  let html = banner + `<section class="hero"><div class="when">${state.year} so far</div>${hero}</section>`;
+  html += `<h2>Each person's share for the year</h2><div class="panel scroll"><table><thead><tr><th>Person</th>${cats.map(c=>`<th>${c==="Other Shared"?"Other":c==="Phone"?"Phones":c}</th>`).join("")}<th>Total share</th><th>Paid + sent</th><th>Balance</th></tr></thead><tbody>`;
+  s.people.forEach(p => { const b = sum.balance[p];
+    html += `<tr><td>${esc(p)}${p===me?' <span class="muted">(you)</span>':''}</td>${cats.map(c=>`<td>${money(sum.byPersonCat[p][c]||0)}</td>`).join("")}<td><strong>${money(sum.owes[p])}</strong></td><td>${money(sum.paid[p]+sum.settled[p])}</td><td class="${b< -0.005?'neg':b>0.005?'pos':''}">${Math.abs(b)<0.005?"—":money(b)}</td></tr>`; });
+  html += `</tbody><tfoot><tr><td>Total</td>${cats.map(c=>`<td>${money(sum.cat[c]||0)}</td>`).join("")}<td>${money(sum.totals.shared+sum.totals.phone)}</td><td></td><td></td></tr></tfoot></table></div>`;
+  html += `<h2>Month by month</h2><div class="panel scroll"><table><thead><tr><th>Month</th><th>Shared + phones</th>${state.isOwner?"<th>You collect</th><th>Still to collect</th>":""}${s.people.map(p=>`<th>${esc(p)} owes</th>`).join("")}</tr></thead><tbody>`;
+  let yc = {expected:0, left:0};
+  for (let m=1;m<=12;m++){
+    const ms = summarize(list.filter(e=>inMonth(e,state.year,m)));
+    const t = ms.totals.shared+ms.totals.phone;
+    const cm = collection(ms, me); yc.expected += cm.expected; yc.left += cm.left;
+    html += `<tr><td>${MONTHS[m-1]}</td><td>${t?money(t):'<span class="muted">—</span>'}</td>${state.isOwner?`<td>${cm.expected?money(cm.expected):'<span class="muted">—</span>'}</td><td class="${cm.left>0.005?'neg':''}">${cm.left>0.005?money(cm.left):'<span class="muted">—</span>'}</td>`:""}${s.people.map(p=>`<td>${ms.owes[p]?money(ms.owes[p]):'<span class="muted">—</span>'}</td>`).join("")}</tr>`;
+  }
+  html += `</tbody>${state.isOwner?`<tfoot><tr><td>Year</td><td></td><td>${money(yc.expected)}</td><td class="${yc.left>0.005?'neg':''}">${money(yc.left)}</td>${s.people.map(()=>"<td></td>").join("")}</tr></tfoot>`:""}</table></div>`;
+  if (state.isOwner){
+    const pc = Object.entries(sum.personalByCat);
+    html += `<h2>Paid alone (not split) — only you see this</h2><div class="panel">${pc.length ? `<div class="scroll"><table style="min-width:0"><tbody>${pc.map(([c,v])=>`<tr><td>${esc(c)}</td><td>${money(v)}</td></tr>`).join("")}</tbody><tfoot><tr><td>Total</td><td>${money(sum.totals.personal)}</td></tr></tfoot></table></div>` : `<p class="muted" style="margin:0">Nothing recorded yet.</p>`}</div>`;
+  }
+  html += `<p style="margin-top:20px"><button class="btn" id="exportBtn">Download ${state.year} as CSV</button></p>`;
+  app.innerHTML = html;
+  const ex = $("#exportBtn"); if (ex){ if (!state.downloads) ex.hidden = true; else ex.onclick = exportCSV; }
+}
+
+async function exportCSV(){
+  const s = S(); const me = ME();
+  const list = allVisible().filter(e=>inYear(e,state.year) && e.kind!=="payment").sort((a,b)=>a.date.localeCompare(b.date));
+  const q = v => `"${String(v??"").replace(/"/g,'""')}"`;
+  const people = state.isOwner ? s.people : (me ? [me] : s.people);
+  const rows = [["Date","Type","Category","Vendor / Description","Amount","Paid by",...people.map(p=>p+" share"),"Notes"].map(q).join(",")];
+  list.forEach(e => { const sh = e.kind==="personal" ? {} : sharesOf(e);
+    if (!state.isOwner && me && !(sh[me] > 0.004)) return;
+    rows.push([e.date, {shared:"Shared",personal:"Not split",phone:"Phone"}[e.kind], e.kind==="phone"?"Phone":e.category, e.vendor, r2(e.amount), e.paidBy, ...people.map(p=>r2(sh[p]||0)), e.notes].map(q).join(",")); });
+  try { await state.downloads.save({filename:`house-ledger-${state.year}${!state.isOwner&&me?"-"+me:""}.csv`, data:rows.join("\n")}); toast("Saved"); }
+  catch(e){ if (e && e.code==="unavailable") $("#exportBtn").hidden = true; }
+}
+
+// ---------- files ----------
+async function shrinkImage(file){
+  try {
+    const bmp = await createImageBitmap(file);
+    const scale = Math.min(1, 2000 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement("canvas"); c.width = Math.round(bmp.width*scale); c.height = Math.round(bmp.height*scale);
+    const ctx = c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height); ctx.drawImage(bmp,0,0,c.width,c.height);
+    return await new Promise(res => c.toBlob(res, "image/jpeg", 0.86));
+  } catch(e){ return file; }
+}
+async function pdfToImages(file, maxPages){
+  if (!window.pdfjsLib) throw new Error("pdf.js missing");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+  const out = [];
+  for (let i=1; i<=Math.min(pdf.numPages, maxPages); i++){
+    const page = await pdf.getPage(i); const vp1 = page.getViewport({scale:1});
+    const vp = page.getViewport({scale: 1400 / vp1.width});
+    const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+    const ctx = c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:ctx, viewport:vp}).promise;
+    out.push(await new Promise(res => c.toBlob(res, "image/jpeg", 0.86)));
+  }
+  return out;
+}
+async function pdfText(file, maxPages){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf = await pdfjsLib.getDocument({data: await file.arrayBuffer()}).promise;
+  let out = "";
+  for (let i=1; i<=Math.min(pdf.numPages, maxPages); i++){
+    const tc = await (await pdf.getPage(i)).getTextContent();
+    let lastY = null, line = [];
+    const lines = [];
+    tc.items.forEach(it => { const yy = Math.round(it.transform[5]); if (lastY !== null && Math.abs(yy-lastY) > 2){ lines.push(line.join(" ")); line = []; } line.push(it.str); lastY = yy; });
+    if (line.length) lines.push(line.join(" "));
+    out += `\n--- Page ${i} ---\n` + lines.map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean).join("\n");
+    if (out.length > 55000) break;
+  }
+  return out.slice(0, 55000);
+}
+const ACTIVITY = /(talk\s*activity|call\s*activity|text\s*activity|messaging\s*activity|data\s*activity|usage\s*details|activity\s*details)/i;
+// Read a PDF's pages until the usage/activity section starts; return those page numbers, their text,
+// and a trimmed copy of the PDF without the activity pages.
+async function analyzePdf(file, maxPages){
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const buf = await file.arrayBuffer();
+  const pdf = await pdfjsLib.getDocument({data: buf.slice(0)}).promise;
+  const keep = []; let text = "";
+  for (let i=1; i<=pdf.numPages && keep.length < maxPages; i++){
+    const tc = await (await pdf.getPage(i)).getTextContent();
+    const lines = []; let lastY = null, line = [];
+    tc.items.forEach(it => { const yy = Math.round(it.transform[5]); if (lastY !== null && Math.abs(yy-lastY) > 2){ lines.push(line.join(" ")); line = []; } line.push(it.str); lastY = yy; });
+    if (line.length) lines.push(line.join(" "));
+    const pageText = lines.map(l=>l.replace(/\s+/g," ").trim()).filter(Boolean).join("\n");
+    if (i > 1 && ACTIVITY.test(pageText)) break;               // stop at talk/text/data activity
+    keep.push(i); text += `\n--- Page ${i} ---\n` + pageText;
+  }
+  let trimmed = file;
+  if (keep.length < pdf.numPages && window.PDFLib){
+    try {
+      const src = await PDFLib.PDFDocument.load(buf.slice(0), {ignoreEncryption:true});
+      const out = await PDFLib.PDFDocument.create();
+      (await out.copyPages(src, keep.map(n=>n-1))).forEach(pg => out.addPage(pg));
+      trimmed = new File([await out.save()], file.name.replace(/\.pdf$/i,"") + " (charges).pdf", {type:"application/pdf"});
+    } catch(x){ trimmed = file; }
+  }
+  const images = [];
+  for (const i of keep){
+    const page = await pdf.getPage(i); const vp1 = page.getViewport({scale:1});
+    const vp = page.getViewport({scale: 1400 / vp1.width});
+    const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height;
+    const ctx = c.getContext("2d"); ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+    await page.render({canvasContext:ctx, viewport:vp}).promise;
+    images.push(await new Promise(res => c.toBlob(res, "image/jpeg", 0.86)));
+  }
+  return {images, text: text.slice(0, 60000), trimmed, kept: keep.length, total: pdf.numPages};
+}
+async function filesToPages(list, maxPages){
+  const pages = [], pdfs = [], texts = []; const info = [];
+  for (const f of list){
+    if (f.type === "application/pdf" || /\.pdf$/i.test(f.name)){
+      const a = await analyzePdf(f, maxPages); pages.push(...a.images); pdfs.push(a.trimmed); texts.push(a.text); info.push(a);
+    } else pages.push(await shrinkImage(f));
+  }
+  return {pages, pdfs, texts, info};
+}
+
+// ---------- Add bill ----------
+function newDraft(kind){
+  const s = S();
+  return { id:null, kind: kind||"shared", date: isoToday, category: kind==="personal" ? (s.personalCategories||PERSONAL_DEFAULT)[0] : "Oil", vendor:"", amount:"", paidBy:s.me, notes:"",
+           lines: kind==="phone" ? [{last4:"",name:"",amount:"",assignedTo:"",remember:true,type:"Phone"}] : [], photos:[], pdf:null, newPages:[], newPdf:null, removed:[] };
+}
+function renderAdd(banner){
+  const aiReady = !!state.sample; const editing = state.draft && state.draft.id;
+  let html = banner + `<section class="hero"><p class="statement" style="color:var(--ink)">${editing ? "Edit entry" : "Add a bill"}</p>
+    <p class="sub">${editing ? "Change anything, add or remove photos, then save." : aiReady ? "Drop a PDF or a photo of the bill. It gets read for you, then you check the numbers and save. The photo is kept with the bill so your brothers can see it." : "Type the bill in below and attach a photo."}</p></section>`;
+  if (aiReady && !editing){
+    html += `<div class="drop" id="drop" tabindex="0" role="button" aria-label="Choose bill files"><strong>Drop a bill here, or tap to choose</strong><span class="muted">PDF, JPG, PNG. Several photos of the same bill are fine.</span>
+      <input type="file" id="file" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden></div>
+      <div class="row" style="margin-top:10px"><label class="btn primary" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer">📷 Take photo of bill<input type="file" id="cam" accept="image/*" capture="environment" hidden></label><span class="muted" style="font-size:13px">Take one photo per page. Tap again for the next page.</span></div>
+      <div class="thumbs" id="thumbs"></div><div class="status" id="readStatus"></div>
+      <div class="panel" id="pastePanel" style="margin-top:12px" ${state.showPaste?"":"hidden"}>
+        <strong>Read a photo of a paper bill</strong>
+        <p class="muted" style="margin:4px 0 10px;font-size:13px">On iPhone: open the photo, press and hold on the text, tap <b>Select All</b>, then <b>Copy</b>. Paste it below and tap Read. The photo stays attached to the bill.</p>
+        <textarea id="pasteText" rows="5" style="width:100%;padding:10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--sunk);color:var(--ink)" placeholder="Paste the bill's text here">${esc(state.pasted||"")}</textarea>
+        <div class="row" style="margin-top:8px"><button class="btn primary" id="pasteRead">Read pasted text</button></div>
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn primary" id="readBtn" ${state.readable?"":"disabled"}>Read bill</button><button class="btn" id="stopBtn" hidden>Stop</button><span class="muted" style="margin-left:auto">or</span><button class="btn" id="pasteToggle">Paste text</button><button class="btn" id="manualBtn">Enter by hand</button></div>`;
+  } else if (!state.draft) state.draft = newDraft("shared");
+  html += `<div id="form"></div>`;
+  app.innerHTML = html;
+  if (aiReady && !editing) wireUpload();
+  if (state.draft) renderForm();
+}
+function wireUpload(){
+  const drop = $("#drop"), file = $("#file");
+  drop.onclick = () => file.click();
+  drop.onkeydown = e => { if (e.key==="Enter"||e.key===" "){ e.preventDefault(); file.click(); } };
+  drop.ondragover = e => { e.preventDefault(); drop.classList.add("over"); };
+  drop.ondragleave = () => drop.classList.remove("over");
+  drop.ondrop = e => { e.preventDefault(); drop.classList.remove("over"); takeFiles(e.dataTransfer.files); };
+  file.onchange = () => takeFiles(file.files);
+  const cam = $("#cam"); if (cam) cam.onchange = () => { addPhotos(cam.files); cam.value = ""; };
+  $("#manualBtn").onclick = () => { state.draft = newDraft("shared"); state.draft.newPages = [...state.images]; state.draft.newPdf = state.pdfs[0] || null; renderForm(); $("#form").scrollIntoView({behavior:"smooth"}); };
+  $("#readBtn").onclick = () => { state.forceText = false; readBill(); };
+  const pt = $("#pasteToggle"); if (pt) pt.onclick = () => { state.showPaste = true; $("#pastePanel").hidden = false; $("#pasteText").focus(); };
+  const pr = $("#pasteRead"); if (pr) pr.onclick = () => {
+    const t = ($("#pasteText").value||"").trim(); state.pasted = t;
+    if (t.length < 20){ $("#readStatus").textContent = "Paste the bill's text first."; return; }
+    state.pdfText = "--- Page 1 ---\n" + t; state.pdfTexts = [state.pdfText]; state.forceText = true; state.readable = true;
+    readBill();
+  };
+  showThumbs();
+}
+async function takeFiles(list){
+  state.images = []; state.pdfs = []; state.pdfText = "";
+  $("#readStatus").textContent = "Preparing pages…";
+  try {
+    const caps = await state.sample.limits().catch(()=>null);
+    state.canImages = !!caps?.images;
+    state.imgMax = Math.min(caps?.images?.maxCount || 6, 8);
+    const r = await filesToPages([...list], 25); state.images = r.pages; state.pdfs = r.pdfs;
+    state.pdfTexts = r.texts; state.pdfText = r.texts.join("\n");
+    const skipped = r.info.reduce((a,x)=>a+(x.total-x.kept),0);
+    const hasText = state.pdfText.replace(/\s|---|Page \d+/g,"").length > 150;
+    if (hasText) $("#readStatus").textContent = `${state.images.length} page${state.images.length===1?"":"s"} of charges ready.${skipped?` ${skipped} activity page${skipped>1?"s":""} (calls, texts, data) left out and won't be saved.`:""}`;
+    else if (state.canImages) $("#readStatus").textContent = `${state.images.length} page${state.images.length===1?"":"s"} ready.`;
+    else if (state.images.length) { showThumbs(); await autoReadPhotos(); return; }
+    state.readable = hasText || state.canImages;
+  } catch(e){ $("#readStatus").textContent = "That file couldn't be opened. Try the PDF from the company's website."; state.images = []; state.readable = false; }
+  $("#readBtn").disabled = !state.readable;
+  showThumbs();
+}
+// ---------- on-phone text recognition for photos (used when the viewer can't send images to Claude) ----------
+const OCR_DATA = "be984464a1a376759e6f01ea8610cb43";   // English OCR model, gzip, base64
+function loadScript(src){ return new Promise((res, rej) => { if ([...document.scripts].some(s => s.src === src)) return res(); const el = document.createElement("script"); el.src = src; el.onload = res; el.onerror = () => rej(new Error("script")); document.head.appendChild(el); }); }
+function idbPut(key, val){ return new Promise((res, rej) => { const rq = indexedDB.open("keyval-store", 1); rq.onupgradeneeded = () => rq.result.createObjectStore("keyval"); rq.onerror = () => rej(rq.error);
+  rq.onsuccess = () => { const tx = rq.result.transaction("keyval", "readwrite"); tx.objectStore("keyval").put(val, key); tx.oncomplete = () => res(); tx.onerror = () => rej(tx.error); }; }); }
+function idbHas(key){ return new Promise(res => { try { const rq = indexedDB.open("keyval-store", 1); rq.onupgradeneeded = () => rq.result.createObjectStore("keyval"); rq.onerror = () => res(false);
+  rq.onsuccess = () => { try { const g = rq.result.transaction("keyval").objectStore("keyval").get(key); g.onsuccess = () => res(g.result !== undefined); g.onerror = () => res(false); } catch(x){ res(false); } }; } catch(x){ res(false); } }); }
+async function ocrImages(blobs, onStep){
+  if (!(await idbHas("./eng.traineddata"))){
+    onStep && onStep("Getting the text reader ready (first time only)…");
+    const r = await fetch(await signedUrl(OCR_DATA)); if (!r.ok) throw new Error("ocr data");
+    const b64 = (await r.text()).trim(); const bin = atob(b64); const bytes = new Uint8Array(bin.length); for (let i=0;i<bin.length;i++) bytes[i] = bin.charCodeAt(i);
+    await idbPut("./eng.traineddata", bytes);
+  }
+  await loadScript("https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js");
+  if (!window.Tesseract) throw new Error("ocr lib");
+  const worker = await Tesseract.createWorker("eng", 1, { cacheMethod: "readOnly", logger: m => { if (m.status === "recognizing text" && onStep) onStep(`Reading the photo… ${Math.round((m.progress||0)*100)}%`); } });
+  let text = "";
+  try { for (let i=0; i<blobs.length; i++){ onStep && onStep(`Reading photo ${i+1} of ${blobs.length}…`); const {data} = await worker.recognize(blobs[i]); text += `\n--- Page ${i+1} ---\n` + (data.text||""); } }
+  finally { try { await worker.terminate(); } catch(x){} }
+  return text;
+}
+async function autoReadPhotos(){
+  const st = $("#readStatus"); const show = t => { if (st) st.textContent = t; };
+  try {
+    const text = await ocrImages(state.images.slice(0, 6), show);
+    if (text.replace(/\s|---|Page \d+/g,"").length < 40) throw new Error("little text");
+    state.pdfText = text; state.pdfTexts = [text]; state.forceText = true; state.readable = true; state.pasted = text.trim();
+    const ta = $("#pasteText"); if (ta) ta.value = state.pasted;
+    show("Photo read. Checking the numbers…");
+    await readBill();
+  } catch(e){
+    state.showPaste = true; const pp = $("#pastePanel"); if (pp) pp.hidden = false;
+    show("The photo couldn't be read automatically. Try a clearer, straight-on photo, or copy the text from the photo and paste it below.");
+  }
+}
+async function addPhotos(list){
+  const st = $("#readStatus"); st.textContent = "Adding photo…";
+  try {
+    const caps = await state.sample.limits().catch(()=>null);
+    state.canImages = !!caps?.images;
+    for (const f of list) state.images.push(await shrinkImage(f));
+  } catch(e){ st.textContent = "That photo couldn't be added. Try again."; return; }
+  showThumbs();
+  const n = state.images.length;
+  if (state.canImages){ state.readable = true; $("#readBtn").disabled = false; st.textContent = `${n} page${n===1?"":"s"} ready. Take another page, or tap “Read bill”.`; return; }
+  // this view can't send images to Claude: read the photo's text on the phone, then read that text
+  if (state.draft && !state.draft.id && document.getElementById("fDate")){ readForm(); state.draft.newPages = [...state.images]; renderForm(); }
+  await autoReadPhotos();
+}
+function showThumbs(){
+  const t = $("#thumbs"); if (!t) return; t.innerHTML = "";
+  state.images.forEach(b => { const img = document.createElement("img"); img.alt = "Bill page"; img.src = URL.createObjectURL(b); t.appendChild(img); });
+}
+let readCtl = null;
+async function readBill(){
+  const s = S(); const status = $("#readStatus"); const btn = $("#readBtn"), stop = $("#stopBtn");
+  btn.disabled = true; stop.hidden = false; status.textContent = "Reading the bill… this can take up to a minute.";
+  readCtl = new AbortController(); stop.onclick = () => readCtl.abort();
+  const hasText = state.forceText || (state.pdfText||"").replace(/\s|---|Page \d+/g,"").length > 150;
+  const prompt = `You are reading a household bill ${hasText ? "from its extracted PDF text (at the end)" : "from the images"}. Extract the data and reply with ONLY one JSON object, no other text.
+
+Shape:
+{"billType":"verizon"|"utility"|"other","vendor":string,"billDate":"YYYY-MM-DD","forMonth":"YYYY-MM","serviceFrom":"YYYY-MM-DD","serviceTo":"YYYY-MM-DD","category":"Oil"|"Electricity"|"Internet"|"Water"|"Other Shared","amount":number,"lines":[{"last4":"1234","name":"NAME ON LINE","amount":number,"kind":"phone"|"subscription"|"device"}],"accountCharges":number,"pages":[1,2],"notes":string}
+
+Rules:
+- billDate: the statement/bill date (or delivery date for heating oil). Use the service period end if no statement date.
+- serviceFrom / serviceTo: the billing or service period the charges cover (e.g., Verizon "Billing period: Aug 11 - Sep 10, 2026" -> "2026-08-11" and "2026-09-10"). For heating oil use the delivery date for both. null if not shown.
+- forMonth: the calendar month of billDate (the statement date), e.g. a bill dated 2026-09-10 -> "2026-09".
+- amount: the CURRENT charges for this period only. Exclude previous balance, past-due amounts and payments received.
+- category: heating oil or propane -> Oil; electric utility -> Electricity; internet/cable/wifi -> Internet; water/sewer -> Water; anything else -> Other Shared.
+- For Verizon or any phone bill: billType "verizon", category "Other Shared", and list EVERY line from the per-line charge summary with its last 4 digits of the phone number, the user name printed for that line, and that line's total for this bill (plan share + device payments + add-ons + that line's taxes/fees). Put charges that belong to the whole account, not one line, in accountCharges. lines + accountCharges should add up to amount.
+- For non-phone bills, lines is [] and accountCharges is 0.
+- pages: the page numbers (1 = first page) that belong to THIS bill. If the file also contains a different bill (e.g., an electric bill in front of a Verizon bill), leave those pages out. If unsure, list every page.
+- notes: one short sentence with anything worth checking (e.g., a credit, a one-time fee). Empty string if nothing.
+- If a value is unreadable, use null for it rather than guessing.
+
+Household people (for context only): ${s.people.join(", ")}.` + (hasText ? `\n\nBILL TEXT:\n${state.pdfText}` : "");
+  try {
+    const opts = {signal: readCtl.signal, modelTier:"default"};
+    if (!hasText) opts.images = state.images.slice(0, state.imgMax || 6);
+    const r = await state.sample.json(prompt, opts);
+    applyExtraction(r || {});
+    status.textContent = "Check the numbers below, then save.";
+  } catch(e){
+    const msg = {cancelled:"Stopped.", not_granted:"Reading bills needs your permission to use Claude. You can still enter the bill by hand.", rate_limited:"Too many requests right now. Try again in a little while.", image_rejected:"One of the pages couldn't be read. Try a clearer photo.", invalid_json:"The bill couldn't be read cleanly. Try again, or enter it by hand.", refused:"This file couldn't be read. Enter the bill by hand.", images_unavailable:"Photos can't be read automatically here.", no_key:"Bill reading is off. Add your Anthropic API key in ⚙ Settings → Bill reading, or tap “Enter by hand”.", bad_key:"Your Anthropic API key was rejected. Check it in ⚙ Settings → Bill reading.", network:"Couldn't reach the bill reader. Check your internet and try again."}[e && e.code] || (e && e.detail ? `Bill reader error: ${e.detail}` : undefined) || "Something went wrong reading the bill. Try again, or enter it by hand.";
+    status.textContent = msg;
+  } finally { btn.disabled = !state.readable; stop.hidden = true; }
+}
+function guessOwner(line){
+  const s = S(); const known = (s.lines||[]).find(l => l.last4 && String(l.last4) === String(line.last4||""));
+  if (known) return known.assignedTo;
+  const nm = String(line.name||"").toLowerCase();
+  return s.people.find(p => nm.includes(p.toLowerCase())) || "";
+}
+function applyExtraction(r){
+  const s = S(); const isPhone = r.billType === "verizon" || (Array.isArray(r.lines) && r.lines.length > 0);
+  const d = newDraft(isPhone ? "phone" : "shared");
+  d.date = /^\d{4}-\d{2}-\d{2}$/.test(r.billDate||"") ? r.billDate : isoToday;
+  d.period = d.date.slice(0,7);
+  const okD = x => /^\d{4}-\d{2}-\d{2}$/.test(x||"");
+  d.serviceFrom = okD(r.serviceFrom) ? r.serviceFrom : ""; d.serviceTo = okD(r.serviceTo) ? r.serviceTo : "";
+  d.vendor = r.vendor || (isPhone ? "Verizon" : "");
+  d.amount = r.amount != null ? r2(r.amount) : "";
+  d.notes = r.notes || "";
+  d.newPages = [...state.images];
+  const key = (isPhone ? "verizon" : String(r.vendor||"").split(/\s+/)[0] || "").toLowerCase();
+  const pdfIdx = key ? (state.pdfTexts||[]).findIndex(t => t.toLowerCase().includes(key)) : -1;
+  d.newPdf = state.pdfs[pdfIdx >= 0 ? pdfIdx : 0] || null;
+  const keep = Array.isArray(r.pages) ? [...new Set(r.pages.map(Number).filter(n => n>=1 && n<=state.images.length))] : [];
+  if (keep.length && keep.length < state.images.length){ d.newPages = keep.sort((a,b)=>a-b).map(n => state.images[n-1]); d.pageNote = `Only pages ${keep.join(", ")} were kept as this bill's photos; the other pages look like a different bill.`; }
+  if (!isPhone) d.category = SHARED.includes(r.category) ? r.category : "Other Shared";
+  if (isPhone){
+    d.lines = (r.lines||[]).map(l => { const known = (s.lines||[]).some(x => x.last4 && String(x.last4)===String(l.last4||"")); return {last4:String(l.last4||""), name:l.name||"", amount:l.amount!=null?r2(l.amount):"", assignedTo:guessOwner(l), remember:!known, type: l.kind==="subscription"?"Subscription":"Phone"}; });
+    if (+r.accountCharges) d.lines.push({last4:"ACCT", name:"Account charges", amount:r2(r.accountCharges), assignedTo:SPLIT_BY_LINES, remember:false, type:"Account"});
+    const notes = [];
+    (s.lineAdjustments||[]).forEach(a => { const to = d.lines.find(l=>String(l.last4)===String(a.to)), from = d.lines.find(l=>String(l.last4)===String(a.from)); const amt = +a.amount||0;
+      if (to && from && amt){ to.amount = r2((+to.amount||0) + amt); from.amount = r2((+from.amount||0) - amt); notes.push(`${money(amt)} moved from line ${a.from} to line ${a.to}`); } });
+    d.adjNote = notes.join("; ");
+  }
+  state.draft = d; renderForm();
+  $("#form").scrollIntoView({behavior:"smooth"});
+}
+
+// ---------- tracked writes (every change is logged so it can be undone) ----------
+const LOG = "private/owner/log";
+const clone = o => o == null ? null : JSON.parse(JSON.stringify(o));
+function currentOf(path){
+  if (path === "settings/main") return clone(state.settings);
+  const [coll, id] = [path.slice(0, path.lastIndexOf("/")), path.slice(path.lastIndexOf("/")+1)];
+  const src = coll === "expenses" ? state.expenses : coll === PRIVATE ? state.personal : [];
+  const f = src.find(x => x.id === id); if (!f) return null; const {id:_, ...body} = f; return clone(body);
+}
+let logGroup = null;
+async function track(label, fn){
+  const outer = !logGroup; if (outer) logGroup = {label, changes:[]};
+  try { return await fn(); }
+  finally { if (outer){ const g = logGroup; logGroup = null; if (g.changes.length && state.db && state.isOwner){ try { await state.db.collection(LOG).add({at:new Date().toISOString(), label:g.label, changes:g.changes}); } catch(x){} } } }
+}
+async function wSet(path, data){ const before = currentOf(path); await state.db.doc(path).set(data); if (logGroup) logGroup.changes.push({path, before, after:clone(data)}); else await track("Change", async () => logGroup.changes.push({path, before, after:clone(data)})); }
+async function wDel(path){ const before = currentOf(path); await state.db.doc(path).delete(); if (logGroup) logGroup.changes.push({path, before, after:null}); else await track("Delete", async () => logGroup.changes.push({path, before, after:null})); }
+async function wAdd(coll, data){ const ref = state.db.collection(coll).doc(); await wSet(coll+"/"+ref.id, data); return ref; }
+async function undoLog(entry){
+  const changes = [...(entry.changes||[])].reverse();
+  await track(`Undo: ${entry.label}`, async () => { for (const c of changes){ if (c.before == null) await wDel(c.path); else await wSet(c.path, c.before); } });
+  try { await state.db.doc(LOG+"/"+entry.id).update({undoneAt:new Date().toISOString()}); } catch(x){}
+}
+function evenShares(amount, people, payer){
+  const cents = Math.round((+amount||0)*100); const n = people.length; if (!n) return {};
+  const base = Math.floor(cents / n); let extra = cents - base*n;
+  const order = [...people].sort((a,b) => (b===payer) - (a===payer));   // any leftover cent goes to whoever paid
+  const out = {}; order.forEach(p => { out[p] = (base + (extra-- > 0 ? 1 : 0)) / 100; }); return out;
+}
+function draftShares(d){
+  const s = S();
+  if (d.splitMode === "even") return evenShares(d.amount, (d.splitWith||[]).filter(p=>s.people.includes(p)), d.paidBy);
+  if (d.splitMode === "custom"){ const o = {}; s.people.forEach(p => { const v = r2(String((d.custom||{})[p]??"").replace(/[$,\s]/g,"")); if (v) o[p] = v; }); return o; }
+  const sp = (s.splits||{})[d.category] || {}; const o = {}; s.people.forEach(p => { if (+sp[p]) o[p] = (+d.amount||0)*(+sp[p])/100; }); return o;
+}
+function renderForm(){
+  const d = state.draft, s = S(); const host = $("#form"); if (!host) return;
+  const peopleOpts = (sel, extra=[]) => [...s.people, ...extra].map(p=>`<option ${p===sel?"selected":""}>${esc(p)}</option>`).join("");
+  let html = `<h2>${d.id ? "Entry details" : "Bill details"}</h2><div class="panel">
+    <div class="row" style="margin-bottom:14px"><div class="seg" role="group" aria-label="Type">
+      <button data-kind="shared" aria-pressed="${d.kind==="shared"}">Shared bill</button>
+      <button data-kind="personal" aria-pressed="${d.kind==="personal"}">Not split</button>
+      <button data-kind="phone" aria-pressed="${d.kind==="phone"}">Phone bill</button></div></div>
+    <div class="grid">
+      <label class="f">Bill date<input type="date" id="fDate" value="${esc(d.date)}"></label>
+      <label class="f">Collect in month<input type="month" id="fPeriod" value="${esc(d.period || (d.date||"").slice(0,7))}"></label>
+      ${d.kind==="phone" ? "" : `<label class="f">Category<select id="fCat">${(d.kind==="personal" ? (s.personalCategories||PERSONAL_DEFAULT) : SHARED).map(c=>`<option ${c===d.category?"selected":""} value="${esc(c)}">${c==="Other Shared"?"Other":esc(c)}</option>`).join("")}</select></label>`}
+      <label class="f">Vendor / description<input id="fVendor" value="${esc(d.vendor)}" placeholder="${d.kind==="phone"?"Verizon":"e.g., Eversource"}"></label>
+      <label class="f">${d.kind==="phone"?"Bill total ($)":"Amount ($)"}<input id="fAmt" inputmode="decimal" value="${esc(d.amount)}"></label>
+      ${d.kind==="personal" ? "" : `<label class="f">Paid by<select id="fPaid">${peopleOpts(d.paidBy)}</select></label>`}
+      <label class="f">Service from<input type="date" id="fSvcFrom" value="${esc(d.serviceFrom||"")}"></label>
+      <label class="f">Service to<input type="date" id="fSvcTo" value="${esc(d.serviceTo||"")}"></label>
+      <label class="f">Notes<input id="fNotes" value="${esc(d.notes)}"></label>
+    </div>`;
+  if (d.kind === "personal") html += `<div class="check">Only you can see this entry and its photos.</div>`;
+  if (d.kind === "shared"){
+    const mode = d.splitMode || "category";
+    const sh = draftShares(d);
+    html += `<h2 style="margin-top:20px">How to split it</h2>
+      <div class="seg" role="group" aria-label="Split"><button data-split="category" aria-pressed="${mode==="category"}">By category</button><button data-split="even" aria-pressed="${mode==="even"}">Evenly</button><button data-split="custom" aria-pressed="${mode==="custom"}">Custom amounts</button></div>`;
+    if (mode === "even"){
+      html += `<div class="row" style="margin-top:12px;gap:8px">${s.people.map(p=>`<label class="ow" style="padding:6px 12px;cursor:pointer"><input type="checkbox" data-with="${esc(p)}" ${(d.splitWith||[]).includes(p)?"checked":""} style="width:auto;margin:0"> ${esc(p)}</label>`).join("")}</div>`;
+    }
+    if (mode === "custom"){
+      html += `<div class="grid" style="margin-top:12px">${s.people.map(p=>`<label class="f">${esc(p)} ($)<input data-cust="${esc(p)}" inputmode="decimal" value="${esc((d.custom||{})[p]??"")}" placeholder="0"></label>`).join("")}</div>`;
+    }
+    const parts = Object.entries(sh).filter(([,v])=>v>0.004);
+    const tot = r2(parts.reduce((a,[,v])=>a+v,0)); const diff = r2((+d.amount||0) - tot);
+    const bad = mode!=="category" && Math.abs(diff) > 0.01;
+    html += `<div class="check ${bad||!parts.length?"bad":""}">${parts.length ? parts.map(([p,v])=>`${esc(p)} ${money(v)}`).join(" · ") : (mode==="even" ? "Tick who to split with." : mode==="custom" ? "Type each person's amount." : "No split set for this category. Set it in Settings, or split evenly.")}${bad ? `<br>Parts add up to ${money(tot)}, ${money(Math.abs(diff))} ${diff>0?"short of":"more than"} the amount.` : ""}</div>`;
+  }
+  if (d.kind === "phone"){
+    html += `<h2 style="margin-top:20px">Lines on this bill</h2><div class="scroll"><table><thead><tr><th>Last 4</th><th>Name on bill</th><th>Amount</th><th>Belongs to</th><th>Remember</th><th></th></tr></thead><tbody>`;
+    d.lines.forEach((l,i) => {
+      html += `<tr><td><input data-l="${i}" data-f="last4" value="${esc(l.last4)}" style="max-width:90px"></td><td><input data-l="${i}" data-f="name" value="${esc(l.name)}"></td><td><input data-l="${i}" data-f="amount" inputmode="decimal" value="${esc(l.amount)}" style="max-width:110px"></td>
+        <td><select data-l="${i}" data-f="assignedTo"><option value="">Choose…</option>${peopleOpts(l.assignedTo,[SPLIT_BY_LINES])}</select></td>
+        <td style="text-align:center"><input type="checkbox" data-l="${i}" data-f="remember" ${l.remember?"checked":""} aria-label="Remember this line" style="width:auto"></td>
+        <td><button class="linkbtn danger" data-del="${i}" aria-label="Remove line">Remove</button></td></tr>`;
+    });
+    html += `</tbody></table></div><p><button class="linkbtn" id="addLine">+ Add line</button></p>`;
+    const sumLines = r2(d.lines.reduce((a,l)=>a+(+l.amount||0),0));
+    const diff = r2((+d.amount||0) - sumLines);
+    const unassigned = d.lines.filter(l=>!l.assignedTo).length;
+    if (d.adjNote) html += `<div class="check">Standing adjustment applied: ${esc(d.adjNote)}.</div>`;
+    html += `<div class="check ${Math.abs(diff)>0.01||unassigned?"bad":""}">Lines add up to ${money(sumLines)}${Math.abs(diff)>0.01 ? ` — that's ${money(Math.abs(diff))} ${diff>0?"less":"more"} than the bill total. Add an account-charges line or fix an amount.` : " — matches the bill total."}${unassigned ? `<br>${unassigned} line${unassigned>1?"s need":" needs"} an owner.` : ""}</div>
+      <p class="muted" style="font-size:13px">“Remember” saves the line's owner so next month's bill fills in automatically. “Split by lines” shares a charge by how many phones each person has.</p>`;
+  }
+  // attachments
+  if (d.pageNote) html += `<div class="check">${esc(d.pageNote)}</div>`;
+  const kept = (d.photos||[]).filter(id=>!d.removed.includes(id));
+  html += `<h2 style="margin-top:20px">Bill photos</h2><div class="thumbs" style="margin-top:0">
+    ${kept.map(id=>`<span class="pend"><img src="${blobUrl(id)}" alt="Saved bill page"><button class="x" data-rmphoto="${esc(id)}" aria-label="Remove photo">×</button></span>`).join("")}
+    ${d.newPages.map((b,i)=>`<span class="pend"><img data-newimg="${i}" alt="New bill page"><button class="x" data-rmnew="${i}" aria-label="Remove photo">×</button></span>`).join("")}
+    ${d.pdf && !d.removed.includes(d.pdf) ? `<span class="pend"><a class="linkbtn" href="${blobUrl(d.pdf)}" target="_blank" rel="noopener">Saved PDF</a><button class="x" data-rmphoto="${esc(d.pdf)}" aria-label="Remove PDF">×</button></span>` : ""}
+    ${d.newPdf ? `<span class="muted" style="align-self:center">PDF will be saved</span>` : ""}
+    </div>
+    ${state.assets ? `<div class="row" style="margin:10px 0"><label class="btn" style="cursor:pointer">📷 Take photo<input type="file" id="attachCam" accept="image/*" capture="environment" hidden></label><label class="btn" style="cursor:pointer">Add photos or PDF<input type="file" id="attach" accept="application/pdf,image/jpeg,image/png,image/webp" multiple hidden></label></div>` : `<p class="muted">Photos can't be saved from this view.</p>`}`;
+  html += `<div class="row" style="margin-top:16px"><button class="btn primary" id="saveBtn">${d.id?"Save changes":"Save bill"}</button><button class="btn" id="cancelBtn">Cancel</button><span class="status" id="saveMsg" style="margin:0"></span></div></div>`;
+  host.innerHTML = html;
+  host.querySelectorAll("[data-newimg]").forEach(img => img.src = URL.createObjectURL(d.newPages[+img.dataset.newimg]));
+
+  host.querySelectorAll("[data-kind]").forEach(b => b.onclick = () => { readForm(); const k=b.dataset.kind; d.kind = k;
+    if (k==="personal" && !(s.personalCategories||PERSONAL_DEFAULT).includes(d.category)) d.category = (s.personalCategories||PERSONAL_DEFAULT)[0];
+    if (k==="shared" && !SHARED.includes(d.category)) d.category = "Oil";
+    if (k==="phone" && !d.lines.length) d.lines = [{last4:"",name:"",amount:"",assignedTo:"",remember:true,type:"Phone"}];
+    renderForm(); });
+  const live = () => { readForm(); renderForm(); };
+  const cat = host.querySelector("#fCat"); if (cat) cat.onchange = live;
+  host.querySelectorAll("[data-split]").forEach(b => b.onclick = () => { readForm(); d.splitMode = b.dataset.split;
+    if (d.splitMode==="even" && !(d.splitWith||[]).length){ const sp = (s.splits||{})[d.category]||{}; d.splitWith = s.people.filter(p=>+sp[p]); if (!d.splitWith.length) d.splitWith = [d.paidBy]; }
+    if (d.splitMode==="custom" && !Object.keys(d.custom||{}).length){ const cur = draftShares({...d, splitMode: "category"}); d.custom = Object.fromEntries(Object.entries(cur).map(([p,v])=>[p, r2(v)])); }
+    renderForm(); });
+  host.querySelectorAll("[data-with],[data-cust]").forEach(el => el.onchange = live);
+  const amt = host.querySelector("#fAmt"); if (amt) amt.onchange = live;
+  host.querySelectorAll("[data-l]").forEach(el => el.onchange = live);
+  host.querySelectorAll("[data-del]").forEach(b => b.onclick = () => { readForm(); d.lines.splice(+b.dataset.del,1); renderForm(); });
+  host.querySelectorAll("[data-rmphoto]").forEach(b => b.onclick = () => { readForm(); d.removed.push(b.dataset.rmphoto); renderForm(); });
+  host.querySelectorAll("[data-rmnew]").forEach(b => b.onclick = () => { readForm(); d.newPages.splice(+b.dataset.rmnew,1); renderForm(); });
+  const at = host.querySelector("#attach"); if (at) at.onchange = async () => { readForm(); $("#saveMsg").textContent = "Preparing photos…";
+    try { const r = await filesToPages([...at.files], 25); d.newPages.push(...r.pages); if (r.pdfs[0]) d.newPdf = r.pdfs[0]; } catch(e){ toast("That file couldn't be opened"); }
+    renderForm(); };
+  const ac = host.querySelector("#attachCam"); if (ac) ac.onchange = async () => { readForm(); for (const f of ac.files){ try { d.newPages.push(await shrinkImage(f)); } catch(e){} } renderForm(); };
+  const al = host.querySelector("#addLine"); if (al) al.onclick = () => { readForm(); d.lines.push({last4:"",name:"",amount:"",assignedTo:"",remember:true,type:"Phone"}); renderForm(); };
+  host.querySelector("#saveBtn").onclick = saveDraft;
+  host.querySelector("#cancelBtn").onclick = () => { const wasEdit = !!d.id; state.draft = null; state.images=[]; state.pdfs=[]; wasEdit ? setView("entries") : render(); };
+}
+function readForm(){
+  const d = state.draft; const v = id => { const el = document.getElementById(id); return el ? el.value : undefined; };
+  const prevDate = d.date;
+  if (v("fDate") !== undefined) d.date = v("fDate");
+  if (v("fPeriod") !== undefined) d.period = v("fPeriod");
+  if (prevDate && d.date && prevDate !== d.date && d.period === prevDate.slice(0,7)) d.period = d.date.slice(0,7);
+  if (v("fCat") !== undefined) d.category = v("fCat");
+  if (v("fVendor") !== undefined) d.vendor = v("fVendor").trim();
+  if (v("fAmt") !== undefined) d.amount = v("fAmt").replace(/[$,\s]/g,"");
+  if (v("fPaid") !== undefined) d.paidBy = v("fPaid");
+  if (v("fNotes") !== undefined) d.notes = v("fNotes").trim();
+  const withs = document.querySelectorAll("#form [data-with]"); if (withs.length) d.splitWith = [...withs].filter(x=>x.checked).map(x=>x.dataset.with);
+  const custs = document.querySelectorAll("#form [data-cust]"); if (custs.length){ d.custom = {}; custs.forEach(x => { if (x.value.trim()) d.custom[x.dataset.cust] = x.value.trim(); }); }
+  if (v("fSvcFrom") !== undefined) d.serviceFrom = v("fSvcFrom");
+  if (v("fSvcTo") !== undefined) d.serviceTo = v("fSvcTo");
+  document.querySelectorAll("#form [data-l]").forEach(el => { const l = d.lines[+el.dataset.l]; if (!l) return;
+    const f = el.dataset.f; l[f] = el.type==="checkbox" ? el.checked : (f==="amount" ? el.value.replace(/[$,\s]/g,"") : el.value.trim()); });
+}
+async function uploadAll(d){
+  const ids = [];
+  for (const b of d.newPages){ const r = await state.assets.upload(b, {contentType:"image/jpeg"}); ids.push(r.id); }
+  let pdfId = null;
+  if (d.newPdf){ const r = await state.assets.upload(d.newPdf, {contentType:"application/pdf"}); pdfId = r.id; }
+  return {ids, pdfId};
+}
+async function saveDraft(){
+  readForm(); const d = state.draft, s = S();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d.date)) return toast("Add a date");
+  if (d.kind==="phone" && !(+d.amount)) d.amount = r2(d.lines.reduce((a,l)=>a+(+l.amount||0),0));
+  if (!(+d.amount)) return toast("Add an amount");
+  if (d.kind==="phone" && d.lines.some(l=>!l.assignedTo)) return toast("Choose who each line belongs to");
+  if (d.kind==="shared" && (d.splitMode==="even" || d.splitMode==="custom")){
+    const sh = draftShares(d); const tot = r2(Object.values(sh).reduce((a,b)=>a+b,0));
+    if (!Object.keys(sh).length) return toast(d.splitMode==="even" ? "Tick who to split with" : "Type each person's amount");
+    if (Math.abs(tot - r2(d.amount)) > 0.01) return toast(`Parts add up to ${money(tot)}, not ${money(d.amount)}`);
+  }
+  if (!state.db) return toast("Your ledger isn't connected");
+  const btn = $("#saveBtn"); btn.disabled = true; const msg = $("#saveMsg");
+  try {
+    let photos = (d.photos||[]).filter(id=>!d.removed.includes(id));
+    let pdf = d.pdf && !d.removed.includes(d.pdf) ? d.pdf : null;
+    if (state.assets && (d.newPages.length || d.newPdf)){
+      msg.textContent = "Saving photos…";
+      const up = await uploadAll(d); photos = [...photos, ...up.ids]; if (up.pdfId) pdf = up.pdfId;
+    }
+    const body = { kind:d.kind, date:d.date, period: /^\d{4}-\d{2}$/.test(d.period||"") ? d.period : d.date.slice(0,7), vendor:d.vendor || (d.kind==="phone"?"Verizon":""), amount:r2(d.amount), notes:d.notes||"", serviceFrom:d.serviceFrom||"", serviceTo:d.serviceTo||"", photos, pdf, updatedAt:new Date().toISOString() };
+    if (d.kind==="phone"){ body.category="Phone"; body.paidBy=d.paidBy; body.lines=d.lines.map(l=>({last4:String(l.last4||""),name:l.name||"",amount:r2(l.amount),assignedTo:l.assignedTo})); }
+    else if (d.kind==="personal"){ body.category=d.category; body.paidBy=s.me; }
+    else { body.category=d.category; body.paidBy=d.paidBy;
+      if (d.splitMode==="even" || d.splitMode==="custom"){ body.splitMode = d.splitMode; body.fixedShares = draftShares(d); if (d.splitMode==="even") body.splitWith = d.splitWith||[]; } }
+    msg.textContent = "Saving…";
+    await track(`${d.id ? "Edited" : "Added"} ${d.kind==="phone"?"phone bill":d.kind==="personal"?"not-split expense":"bill"}: ${body.vendor||body.category} ${money(body.amount)}`, async () => {
+    const target = d.kind==="personal" ? PRIVATE : "expenses";
+    if (d.id){
+      const oldPath = d.origKind==="personal" ? PRIVATE : "expenses";
+      if (oldPath !== target){ await wSet(target+"/"+d.id, body); await wDel(oldPath+"/"+d.id); }
+      else await wSet(target+"/"+d.id, body);
+    } else await wAdd(target, body);
+    // removed photos are kept in storage so an undo can bring them back
+    if (d.kind==="phone"){
+      const toRemember = d.lines.filter(l=>l.remember && l.last4 && l.assignedTo);
+      if (toRemember.length){
+        const lines = [...(s.lines||[])];
+        toRemember.forEach(l => { const i = lines.findIndex(x=>String(x.last4)===String(l.last4)); const row = {last4:String(l.last4), label:l.name||"", assignedTo:l.assignedTo, type: l.last4==="ACCT"?"Account":(l.type||"Phone")}; if (i>=0) lines[i] = {...lines[i], assignedTo:l.assignedTo}; else lines.push(row); });
+        await saveSettings({...s, lines});
+      }
+    }
+    });
+    const [y,m] = ((/^\d{4}-\d{2}$/.test(d.period||"")) ? d.period : d.date.slice(0,7)).split("-").map(Number); state.year=y; state.month=m;
+    toast(d.id ? "Changes saved" : "Bill saved");
+    state.draft = null; state.images=[]; state.pdfs=[];
+    setView("month");
+  } catch(e){
+    btn.disabled = false; msg.textContent = "";
+    toast(e && e.code==="quota_exceeded" ? "Storage is full — delete old entries or photos to add more" : "Couldn't save. Try again.");
+  }
+}
+
+// ---------- Entries ----------
+function renderEntries(banner){
+  const scope = state.entriesScope; const me = ME();
+  let list = allVisible().filter(e => e.kind!=="payment" && (scope==="year" ? inYear(e,state.year) : inMonth(e,state.year,state.month))).sort((a,b)=>b.date.localeCompare(a.date));
+  if (!state.isOwner && me) list = list.filter(e => (sharesOf(e)[me]||0) > 0.004);
+  let html = banner + `<section class="hero"><p class="statement" style="color:var(--ink)">${state.isOwner?"Entries":"Your bills"}</p>${!state.isOwner && me ? whoPicker(false) : ""}</section>
+    <div class="row" style="margin-bottom:12px"><div class="seg" role="group" aria-label="Range"><button data-scope="month" aria-pressed="${scope==="month"}">This month</button><button data-scope="year" aria-pressed="${scope==="year"}">Whole year</button></div>
+    ${state.isOwner?`<button class="btn" data-go="add" style="margin-left:auto">Add bill</button>`:""}</div><div class="panel">`;
+  if (!list.length) html += `<div class="empty">${state.isOwner?"Nothing here yet. Add a bill to get started.":"No bills for you in this period."}</div>`;
+  else html += `<div class="list">` + list.map(e => itemHtml(e, state.isOwner ? null : me)).join("") + `</div>`;
+  html += `</div>`;
+  app.innerHTML = html; wireGo();
+  app.querySelectorAll("[data-scope]").forEach(b => b.onclick = () => { state.entriesScope = b.dataset.scope; render(); });
+  wireOwers();
+  app.querySelectorAll("[data-edit]").forEach(b => b.onclick = () => { const e = allVisible().find(x=>x.id===b.dataset.edit); if (!e) return;
+    state.draft = { splitMode: e.recurringId ? "" : (e.splitMode || (e.fixedShares ? "custom" : "")), splitWith: e.splitWith||[], custom: e.fixedShares ? Object.fromEntries(Object.entries(e.fixedShares).filter(([,v])=>v).map(([p,v])=>[p,v])) : {}, id:e.id, origKind:e.kind, kind:e.kind, date:e.date, period:periodOf(e), serviceFrom:e.serviceFrom||"", serviceTo:e.serviceTo||"", category:e.category, vendor:e.vendor||"", amount:e.amount, paidBy:e.paidBy||S().me, notes:e.notes||"",
+      lines:(e.lines||[]).map(l=>({...l, remember:false})), photos:[...(e.photos||[])], pdf:e.pdf||null, newPages:[], newPdf:null, removed:[] };
+    setView("add"); });
+  app.querySelectorAll("[data-rm]").forEach(b => b.onclick = async () => {
+    if (b.dataset.confirm !== "1"){ b.dataset.confirm = "1"; b.textContent = "Confirm delete"; return; }
+    const e = allVisible().find(x=>x.id===b.dataset.rm); if (!e) return;
+    try {
+      await track(`Deleted: ${e.vendor||e.category} ${money(e.amount)} (${periodLabel(periodOf(e))})`, async () => {
+        if (e.recurringId){ const st = S(); const rec = (st.recurring||[]).map(r => r.id===e.recurringId ? {...r, skip:[...new Set([...(r.skip||[]), periodOf(e)])]} : r); await saveSettings({...st, recurring:rec}); }
+        await wDel((e.kind==="personal"?PRIVATE:"expenses")+"/"+e.id);
+      });
+      // photos are kept so the delete can be undone from History
+      toast("Deleted");
+    } catch(x){ toast("Couldn't delete. Try again."); }
+  });
+}
+
+
+// ---------- Statements (PDF, no sign-in needed) ----------
+// Render only the Verizon pages that matter for this person: the page listing every line,
+// plus the detail pages for their own numbers, with their lines highlighted.
+// Verizon pages for one person: highlight only the rows with their phone numbers and each line's amount.
+async function phonePagesFor(e, person){
+  const mine = (e.lines||[]).filter(l => l.assignedTo===person && /^\d{4}$/.test(String(l.last4))).map(l => String(l.last4));
+  if (!mine.length) return [];
+  const r = await fetch(await signedUrl(e.pdf)); if (!r.ok) throw new Error("fetch");
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  const pdf = await pdfjsLib.getDocument({data: await r.arrayBuffer()}).promise;
+  const numRe = d => new RegExp("\\d{3}\\D{0,3}" + d + "(?!\\d)");
+  const out = [];
+  for (let i=1; i<=pdf.numPages && out.length < 14; i++){
+    const page = await pdf.getPage(i); const tc = await page.getTextContent();
+    const flat = tc.items.map(it=>it.str).join("");
+    if (!/verizon|billing\s*period/i.test(flat)) continue;
+    if (i > 1 && ACTIVITY.test(flat)) break;                    // talk/text/data activity: stop
+    const vp1 = page.getViewport({scale:1}); const vp = page.getViewport({scale: 1400 / vp1.width});
+    const W = vp.width, H = vp.height;
+    // group text pieces into rows so a number split across pieces is still found
+    const pieces = tc.items.filter(it => it.str.trim()).map(it => { const t = pdfjsLib.Util.transform(vp.transform, it.transform); return {str:it.str, x:t[4], y:t[5], fh:Math.hypot(t[2],t[3])}; }).sort((a,b)=>a.y-b.y || a.x-b.x);
+    const rows = [];
+    pieces.forEach(p => { const row = rows.find(r => Math.abs(r.y - p.y) < Math.max(3, p.fh*0.45)); if (row){ row.parts.push(p); row.fh = Math.max(row.fh, p.fh); } else rows.push({y:p.y, fh:p.fh, parts:[p]}); });
+    rows.forEach(r => { r.parts.sort((a,b)=>a.x-b.x); r.text = r.parts.map(p=>p.str).join(""); r.x = r.parts[0].x; });
+    rows.sort((a,b)=>a.y-b.y);
+    const bands = [];
+    rows.forEach((r, k) => {
+      if (!mine.some(d => numRe(d).test(r.text))) return;
+      // the amount sits on the name row just above the number
+      let top = r.y - r.fh*1.1;
+      for (let j = k-1; j >= Math.max(0, k-3); j--){ if (/\$\s?\d/.test(rows[j].text) && r.y - rows[j].y < r.fh*6){ top = rows[j].y - rows[j].fh*1.1; break; } }
+      bands.push({x1: Math.min(r.x, W*0.06) - 6, y1: top, y2: r.y + r.fh*0.45});
+    });
+    if (!bands.length) continue;
+    const c = document.createElement("canvas"); c.width = W; c.height = H;
+    const ctx = c.getContext("2d"); ctx.fillStyle = "#fff"; ctx.fillRect(0,0,W,H);
+    await page.render({canvasContext:ctx, viewport:vp}).promise;
+    ctx.globalCompositeOperation = "multiply"; ctx.fillStyle = "rgba(255,214,0,0.6)";
+    bands.forEach(b => ctx.fillRect(Math.max(0,b.x1), b.y1, W*0.605 - Math.max(0,b.x1), b.y2 - b.y1));
+    ctx.globalCompositeOperation = "source-over";
+    out.push({url: c.toDataURL("image/jpeg", 0.85), w: W, h: H});
+  }
+  return out;
+}
+async function photoData(id){
+  const r = await fetch(await signedUrl(id)); if (!r.ok) throw new Error("fetch");
+  const b = await r.blob();
+  const url = await new Promise((res,rej)=>{ const fr=new FileReader(); fr.onload=()=>res(fr.result); fr.onerror=rej; fr.readAsDataURL(b); });
+  const dim = await new Promise((res,rej)=>{ const im=new Image(); im.onload=()=>res({w:im.naturalWidth,h:im.naturalHeight}); im.onerror=rej; im.src=url; });
+  return {url, ...dim};
+}
+function splitDetail(e, person){
+  if (e.kind === "shared" && e.fixedShares){ if (e.recurringId) return "fixed monthly amount"; if (e.splitMode==="even"){ const n = Object.values(e.fixedShares).filter(v=>v>0).length; return `split evenly ${n} ways`; } return "custom split"; }
+  if (e.kind === "shared"){ const pct = +((S().splits||{})[e.category]||{})[person] || 0; return `${r2(pct)}% of the bill`; }
+  if (e.kind === "phone"){
+    const mine = (e.lines||[]).filter(l=>l.assignedTo===person).map(l=>`line ${l.last4}: ${money(l.amount)}`);
+    const acct = (e.lines||[]).filter(l=>l.assignedTo===SPLIT_BY_LINES).reduce((a,l)=>a+(+l.amount||0),0);
+    const c = lineCounts(); const tot = Object.values(c).reduce((a,b)=>a+b,0);
+    if (acct && c[person]) mine.push(`account charges ${c[person]}/${tot} phones: ${money(acct*c[person]/tot)}`);
+    return mine.join("; ");
+  }
+  return "";
+}
+// ----- Statement: allocate what a person has paid against what they owe (mortgage first, then oldest) -----
+// Each person's account: money they've paid in (plus bills they covered for others), minus bill parts paid from it.
+function accountOf(person, lastP){
+  const me = S().me; let acct = 0, unpaid = 0; const open = [];
+  state.expenses.forEach(e => {
+    if (e.kind === "payment"){ if (e.from===person && e.to===me) acct += +e.amount||0; else if (e.from===me && e.to===person) acct -= +e.amount||0; return; }
+    const sh = sharesOf(e); const mine = sh[person]||0;
+    if (e.paidBy === person){
+      acct += (+e.amount||0) - mine;                                  // they covered everyone else's part
+      if ((e.paidOff||{})[me] && me !== person) acct -= sh[me]||0;    // you paid them back your part
+      return;
+    }
+    if (mine <= 0.004) return;
+    if ((e.paidOff||{})[person]) { acct -= mine; return; }
+    if (lastP && periodOf(e) > lastP) return;
+    unpaid += mine; open.push({e, share:mine, period:periodOf(e), mortgage: e.recurringId==="mortgage" || /mortgage/i.test(e.category||"")});
+  });
+  open.sort((a,b) => (a.mortgage - b.mortgage) || a.period.localeCompare(b.period) || a.e.date.localeCompare(b.e.date));   // mortgage last
+  acct = Math.abs(acct) < 0.015 ? 0 : r2(acct);
+  return {account: acct, unpaid: r2(unpaid), open};
+}
+async function payFromAccount(person, lastP){
+  const a = accountOf(person, lastP); let left = a.account, used = 0, n = 0;
+  if (left < 0.01){ toast(`${person} has nothing in their account yet. Add their payment first.`); openPay(person, a.unpaid); return; }
+  await track(`Paid bills from ${person}'s account`, async () => {
+  for (const it of a.open.filter(o => o.period <= lastP)){
+    if (it.share > left + 0.005) continue;
+    const e = state.expenses.find(x=>x.id===it.e.id); if (!e) continue;
+    const {id, ...body} = e;
+    await wSet("expenses/"+id, {...JSON.parse(JSON.stringify(body)), paidOff:{...(e.paidOff||{}), [person]: isoToday}, updatedAt:new Date().toISOString()});
+    left = r2(left - it.share); used = r2(used + it.share); n++;
+  }
+  if (logGroup && n) logGroup.label = `Paid ${n} bill${n>1?"s":""} (${money(used)}) from ${person}'s account`;
+  });
+  if (!n){ toast(`${person}'s account has ${money(a.account)}, not enough for the next bill. Add a payment first.`); openPay(person, r2(a.open[0] ? a.open[0].share - a.account : 0)); return; }
+  toast(`Paid ${n} bill${n>1?"s":""} (${money(used)}) from ${person}'s account. ${money(left)} left in it.`);
+}
+function statementLedger(person, lastP){
+  const exp = state.expenses.filter(e => periodOf(e) && periodOf(e) <= lastP);
+  const billName = e => `${e.kind==="phone"?"Phone":e.category==="Other Shared"?"Other":e.category}${e.vendor && e.vendor!==e.category?" - "+e.vendor:""}`;
+  const isMortgage = e => e.recurringId==="mortgage" || /mortgage/i.test(e.category||"");
+  const items = [], credits = [];
+  exp.forEach(e => {
+    if (e.kind === "payment"){
+      if (e.from===person) credits.push({date:e.date, desc:"Payment", amount:+e.amount||0});
+      else if (e.to===person) credits.push({date:e.date, desc:"Payment received", amount:-(+e.amount||0)});
+      return;
+    }
+    const sh = sharesOf(e); const mine = sh[person]||0;
+    if (e.paidBy === person){
+      const front = (+e.amount||0) - mine;
+      if (front > 0.004) credits.push({date:e.date, desc:`You paid ${billName(e)} (others' part)`, amount:front});
+      Object.entries(e.paidOff||{}).forEach(([who, when]) => { const v = sh[who]||0; if (who===S().me && who!==person && v>0.004) credits.push({date:when, desc:`Paid back to you: ${billName(e)}`, amount:-v}); });
+      return;
+    }
+    if (mine <= 0.004) return;
+    const marked = (e.paidOff||{})[person];
+    items.push({e, name:billName(e), period:periodOf(e), date:e.date, share:mine, mortgage:isMortgage(e), marked, paid: marked ? mine : 0, left: marked ? 0 : mine});
+  });
+  let pool = credits.reduce((a,c)=>a+c.amount,0);
+  // bills already paid from their account use that money first
+  items.filter(i=>i.marked).forEach(i => { pool -= i.share; });
+  pool = Math.abs(pool) < 0.015 ? 0 : r2(pool);   // ignore half-cent rounding
+  // money in their account pays whole bills only, oldest first, mortgage last; nothing is taken off a bill partly
+  const order = items.filter(i=>!i.marked).sort((a,b) => (a.mortgage - b.mortgage) || a.period.localeCompare(b.period) || a.date.localeCompare(b.date));
+  order.forEach(i => { if (pool > 0 && i.left <= pool + 0.005){ i.paid = i.left; pool = r2(pool - i.left); i.left = 0; } });
+  items.sort((a,b) => a.period.localeCompare(b.period) || (b.mortgage - a.mortgage) || a.date.localeCompare(b.date));
+  credits.sort((a,b) => String(a.date).localeCompare(String(b.date)));
+  const totalShare = r2(items.reduce((a,i)=>a+i.share,0));
+  const openBills = r2(items.reduce((a,i)=>a+i.left,0) + (pool < 0 ? -pool : 0));
+  const inAccount = pool > 0 ? r2(pool) : 0;
+  const totalLeft = r2(Math.max(0, openBills - inAccount));
+  const markedPaid = 0;
+  return {items, credits, totalShare, totalLeft, openBills, inAccount, credit: inAccount > openBills + 0.005 ? r2(inAccount - openBills) : 0, markedPaid, creditsTotal: r2(credits.reduce((a,c)=>a+c.amount,0))};
+}
+async function buildStatement(person, btn, withPhotos=false, mode="all"){
+  if (!window.jspdf) { toast("PDF tool didn't load. Reload the page."); return; }
+  const {jsPDF} = window.jspdf;
+  const {rows} = periodBalances();
+  const nowP = `${today.getFullYear()}-${pad(today.getMonth()+1)}`;
+  const thisP = mode==="month" ? `${state.year}-${pad(state.month)}` : [nowP, ...rows.map(r=>r.period)].sort().pop();
+  const L = statementLedger(person, thisP);
+  const doc = new jsPDF({unit:"pt", format:"letter"});
+  const W = 612, H = 792, M = 48; let y = M;
+  const ink=[24,34,45], mute=[90,102,114], red=[179,38,30], green=[23,102,79], line=[213,221,217];
+  const txt = (t,x,yy,o={}) => { doc.setFont("helvetica", o.bold?"bold":"normal"); doc.setFontSize(o.size||10); doc.setTextColor(...(o.color||ink)); doc.text(String(t), x, yy, o.align?{align:o.align}:undefined); };
+  const need = h => { if (y + h > H - M){ doc.addPage(); y = M; return true; } return false; };
+  const fmtD = d => /^\d{4}-\d{2}-\d{2}$/.test(d||"") ? `${MONTHS[+d.slice(5,7)-1].slice(0,3)} ${+d.slice(8,10)}, ${d.slice(0,4)}` : "";
+  const bar = (label, right, rc) => { need(40); doc.setFillColor(238,242,240); doc.rect(M, y-13, W-2*M, 21, "F"); txt(label, M+6, y+2, {bold:true, size:12}); if (right) txt(right, W-M-6, y+2, {bold:true, size:11, color:rc||ink, align:"right"}); y += 24; };
+
+  // which bills to list
+  const shownItems = mode==="month" ? L.items.filter(i => i.period===thisP || i.left > 0.005) : L.items;
+  const earlierOpen = [...new Set(L.items.filter(i => i.period < thisP && i.left > 0.005).map(i => i.period))];
+  const title = mode==="month" ? "Open balance statement" : "Full statement";
+  const range = mode==="month" ? periodLabel(thisP) : (L.items.length ? `${periodLabel(L.items[0].period)} to ${periodLabel(thisP)}` : periodLabel(thisP));
+
+  // header
+  txt("41 Green Drive", M, y+6, {bold:true, size:22});
+  txt(`${MONTHS[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`, W-M, y+6, {size:10, color:mute, align:"right"}); y += 28;
+  txt(`${person}  |  ${title}  |  ${range}`, M, y, {size:11, color:mute}); y += 34;
+  if (L.totalLeft > 0.005){ txt(`Total you owe: ${money(L.totalLeft)}`, M, y, {bold:true, size:18, color:red}); y += 24; }
+  else if (L.credit > 0.005){ txt(`Paid off. You're owed: ${money(L.credit)}`, M, y, {bold:true, size:18, color:green}); y += 24; }
+  else { txt("Paid off. Nothing owed.", M, y, {bold:true, size:18, color:green}); y += 24; }
+  if (earlierOpen.length && L.totalLeft > 0.005){ txt(`Includes unpaid bills from ${earlierOpen.map(periodLabel).join(", ")}.`, M, y, {size:10, color:mute}); y += 16; }
+  y += 12;
+
+  // ---- Section: amounts owed ----
+  const cols = {date:M, bill:M+62, total:M+360, part:W-M};
+  const head = () => { txt("Date",cols.date,y,{bold:true,size:9,color:mute}); txt("Bill",cols.bill,y,{bold:true,size:9,color:mute}); txt("Bill total",cols.total,y,{bold:true,size:9,color:mute,align:"right"}); txt("Your part",cols.part,y,{bold:true,size:9,color:red,align:"right"}); y += 6; doc.setDrawColor(...line); doc.line(M,y,W-M,y); y += 14; };
+  bar(mode==="month" ? "What you owe" : "Amounts owed", mode==="month" ? "" : `your part ${money(L.totalShare)}`);
+  const periods = [...new Set(shownItems.map(i=>i.period))].sort();
+  if (!periods.length){ txt("No bills.", M, y, {color:mute}); y += 18; }
+  periods.forEach(p => {
+    const its = shownItems.filter(i=>i.period===p);
+    const left = r2(its.reduce((a,i)=>a+i.left,0));
+    need(50); txt(periodLabel(p), M, y, {bold:true, size:11}); y += 16; head();
+    its.forEach(i => {
+      const e = i.e;
+      doc.setFontSize(10); const nameL = doc.splitTextToSize(i.name, 260);
+      const sub = [serviceText(e) ? `Covers ${serviceText(e)}` : "", splitDetail(e, person)].filter(Boolean).join(" | ");
+      doc.setFontSize(8.5); const subL = sub ? doc.splitTextToSize(sub, 270) : [];
+      const h = nameL.length*12 + subL.length*10 + 8; if (need(h + 10)) head();
+      const [,mm,dd] = e.date.split("-");
+      txt(`${MONTHS[+mm-1].slice(0,3)} ${+dd}`, cols.date, y);
+      doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...ink); doc.text(nameL, cols.bill, y);
+      if (subL.length){ doc.setFontSize(8.5); doc.setTextColor(...mute); doc.text(subL, cols.bill, y + nameL.length*12); }
+      txt(money(e.amount), cols.total, y, {align:"right"}); txt(money(i.share), cols.part, y, {bold:true, color:red, align:"right"});
+      y += h; doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8);
+    });
+    y += 8;
+  });
+
+  // ---- Section: payments ----
+  const pays = mode==="month" ? L.credits.filter(c => String(c.date).slice(0,7) === thisP) : L.credits;
+  const markedList = [];
+  y += 6;
+  bar(mode==="month" ? `Payments in ${MONTHS[+thisP.slice(5)-1]}` : "Payments", mode==="month" ? "" : `total ${money(L.creditsTotal + L.markedPaid)}`, green);
+  if (!pays.length && !markedList.length){ txt(mode==="month" ? "No payments this month yet." : "No payments recorded yet.", M, y, {color:mute}); y += 18; }
+  [...pays.map(c => ({date:c.date, desc:c.desc, amount:c.amount})), ...markedList.map(i => ({date:i.marked, desc:`Paid your part of ${i.name} (${periodLabel(i.period)})`, amount:i.share}))]
+    .sort((a,b)=>String(a.date).localeCompare(String(b.date)))
+    .forEach(c => { need(18); txt(fmtD(c.date), M, y); txt(c.desc, M+90, y); txt((c.amount<0?"- ":"")+money(Math.abs(c.amount)), W-M, y, {bold:true, color: c.amount<0?mute:green, align:"right"}); y += 16; });
+  y += 10;
+
+  // ---- Summary ----
+  need(100);
+  bar("Summary");
+  const row = (label, val, o={}) => { txt(label, M, y, o); txt(val, W-M, y, {...o, align:"right"}); y += 16; };
+  if (mode==="month"){
+    const thisMonth = r2(L.items.filter(i=>i.period===thisP).reduce((a,i)=>a+i.share,0));
+    const carried = r2(L.items.filter(i=>i.period<thisP).reduce((a,i)=>a+i.left,0));
+    row(`Your part for ${MONTHS[+thisP.slice(5)-1]}`, money(thisMonth), {color:red});
+    if (carried > 0.005) row("Still unpaid from earlier months", "+ "+money(carried), {color:red});
+    const paidThis = r2(L.items.filter(i=>i.period===thisP).reduce((a,i)=>a+i.paid,0));
+    if (paidThis > 0.005) row(`Already paid toward ${MONTHS[+thisP.slice(5)-1]}`, "- "+money(paidThis), {color:green});
+  } else {
+    row("Your part of all bills", money(L.totalShare), {color:red});
+    if (L.creditsTotal + L.markedPaid > 0.005) row("Payments and credits", "- "+money(L.creditsTotal + L.markedPaid), {color:green});
+  }
+  if (L.inAccount > 0.005 && L.openBills > 0.005){ row("Open bills", money(L.openBills)); row("In your account, not yet applied", "- "+money(Math.min(L.inAccount, L.openBills)), {color:green}); }
+  y += 4; need(40); doc.setDrawColor(...ink); doc.line(M, y-6, W-M, y-6); y += 10;
+  if (L.totalLeft > 0.005){ txt("YOU STILL OWE", M, y, {bold:true, size:14, color:red}); txt(money(L.totalLeft), W-M, y, {bold:true, size:14, color:red, align:"right"}); }
+  else if (L.credit > 0.005){ txt("PAID OFF - YOU'RE OWED", M, y, {bold:true, size:14, color:green}); txt(money(L.credit), W-M, y, {bold:true, size:14, color:green, align:"right"}); }
+  else { txt("PAID OFF", M, y, {bold:true, size:14, color:green}); txt("$0.00", W-M, y, {bold:true, size:14, color:green, align:"right"}); }
+  y += 20;
+
+  // ---- photos ----
+  const allBills = [...new Set(shownItems.map(i => i.e))];
+  let missing = 0;
+  for (const e of (withPhotos ? allBills : [])){
+    let imgs = null;
+    if (e.kind === "phone" && e.pdf){
+      if (btn) btn.textContent = "Finding their lines…";
+      try { imgs = await phonePagesFor(e, person); } catch(x){ imgs = null; }
+    }
+    const list = imgs && imgs.length ? imgs.map(im => ({im})) : (e.photos||[]).map(id => ({id}));
+    for (const it of list){
+      if (btn) btn.textContent = "Adding photos…";
+      let p = it.im; if (!p){ try { p = await photoData(it.id); } catch(x){ missing++; continue; } }
+      doc.addPage(); y = M;
+      txt(`${e.kind==="phone"?"Phone":e.category==="Other Shared"?"Other":e.category}${e.vendor?" - "+e.vendor:""}  |  ${periodLabel(periodOf(e))}  |  ${e.date}`, M, y, {bold:true, size:11}); y += 14;
+      const sc = Math.min((W-2*M)/p.w, (H-M-y)/p.h);
+      doc.addImage(p.url, "JPEG", M, y, p.w*sc, p.h*sc);
+    }
+  }
+  if (missing){ doc.setPage(1); txt(`${missing} bill photo${missing>1?"s":""} couldn't be added.`, M, H-M+16, {size:9, color:mute}); }
+  const blob = new Blob([doc.output("arraybuffer")], {type:"application/pdf"});
+  return {blob, filename:`41 Green Drive - ${person} - ${mode==="month" ? periodLabel(thisP)+" open balance" : "Full statement"}.pdf`};
+}
+async function previewStatement(person, btn, withPhotos, mode="all"){
+  const out = await buildStatement(person, btn, withPhotos, mode); if (!out) return;
+  const pv = $("#pv"), pages = $("#pvPages");
+  $("#pvTitle").textContent = out.filename.replace(/\.pdf$/,"");
+  pages.innerHTML = '<p class="muted">Loading preview…</p>'; pv.classList.add("open"); $("#pvClose").focus();
+  $("#pvClose").onclick = () => { pv.classList.remove("open"); pages.innerHTML = ""; };
+  const save = $("#pvSave"); save.hidden = !state.downloads; save.disabled = false;
+  const share = $("#pvShare");
+  const file = new File([out.blob], out.filename, {type:"application/pdf"});
+  let canShare = false; try { canShare = !!(navigator.canShare && navigator.canShare({files:[file]})); } catch(x){}
+  share.hidden = !canShare; share.disabled = false;
+  save.textContent = canShare ? "Save PDF" : "Save PDF to send";
+  share.onclick = async () => {
+    share.disabled = true;
+    try {
+      if (canShare){ await navigator.share({files:[file], title:out.filename.replace(/\.pdf$/,"")}); toast("Shared"); }
+      else { await state.downloads.save({filename:out.filename, data:out.blob}); }
+    } catch(x){
+      if (x && x.name === "AbortError") { /* closed the share sheet */ }
+      else { share.hidden = true; save.textContent = "Save PDF to send"; toast("Sharing is blocked here. Save the PDF, then send it from your Files."); }
+    }
+    share.disabled = false;
+  };
+  save.onclick = async () => { save.disabled = true; try { await state.downloads.save({filename:out.filename, data:out.blob}); toast("Statement ready to send"); } catch(x){ if (x && x.code==="unavailable") toast("Downloads aren't available here"); } save.disabled = false; };
+  try {
+    pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    const pdf = await pdfjsLib.getDocument({data: await out.blob.arrayBuffer()}).promise;
+    pages.innerHTML = "";
+    const w = Math.min(900, pages.clientWidth - 32) * (window.devicePixelRatio || 1);
+    for (let i=1; i<=pdf.numPages; i++){
+      const page = await pdf.getPage(i); const vp1 = page.getViewport({scale:1}); const vp = page.getViewport({scale: w / vp1.width});
+      const c = document.createElement("canvas"); c.width = vp.width; c.height = vp.height; c.style.width = (vp.width/(window.devicePixelRatio||1)) + "px";
+      c.setAttribute("aria-label", `Page ${i}`); pages.appendChild(c);
+      await page.render({canvasContext:c.getContext("2d"), viewport:vp}).promise;
+    }
+  } catch(x){ pages.innerHTML = '<p class="muted">The preview couldn\'t be shown, but you can still save the PDF.</p>'; }
+}
+
+function statementsPanel(sum){
+  const s = S(); const thisP = `${state.year}-${pad(state.month)}`;
+  const upTo = periodBalances().rows.filter(r=>r.period<=thisP);
+  const cumP = p => upTo.reduce((a,r)=>a+(r.balance[p]||0),0) + (p===s.me ? 0 : accountOf(p, thisP).account);
+  const others = s.people.filter(p=>p!==s.me && ((sum.owes[p]||0) > 0.004 || Math.abs(cumP(p)) > 0.004));
+  if (!others.length) return "";
+  return `<h2>Send each person their statement</h2><div class="panel">
+    <p class="muted" style="margin-top:0"><strong>This month</strong> shows what's open: this month's bills plus any bill still unpaid from before. <strong>Everything</strong> shows all bills and all payments. <strong>Everything</strong> shows every month, all payments, and the full total. Text or email it — no account or sign-in needed to open it.</p>
+    <label class="row" style="gap:8px;margin-bottom:8px;font-weight:600"><input type="checkbox" id="stmtPhotos" style="width:auto"> Include bill photos</label>
+    <div class="list">${others.map(p=>{ const b = cumP(p); return `<div class="item" style="grid-template-columns:1fr auto"><div><strong>${esc(p)}</strong><div class="meta">This month ${money(sum.owes[p])} · ${b< -0.005?`owes ${money(-b)} in total`:b>0.005?`is owed ${money(b)}`:"paid up"}</div></div>
+      <div class="row" style="gap:6px;justify-content:flex-end"><button class="btn" data-stmt="${esc(p)}" data-mode="month">This month</button><button class="btn" data-stmt="${esc(p)}" data-mode="all">Everything</button></div></div>`; }).join("")}</div></div>`;
+}
+
+
+// ---------- Balances ----------
+const periodLabel = p => { const [y,m] = p.split("-"); return `${MONTHS[+m-1]} ${y}`; };
+function periodBalances(){
+  const list = state.expenses; // shared, phone, payments (never personal)
+  const periods = [...new Set(list.map(periodOf).filter(Boolean))].sort();
+  const people = S().people;
+  const rows = periods.map(p => { const sm = summarize(list.filter(e=>periodOf(e)===p)); return {period:p, balance:sm.balance, owes:sm.owes}; });
+  const cum = Object.fromEntries(people.map(x=>[x, rows.reduce((a,r)=>a+(r.balance[x]||0),0)]));
+  return {rows, cum};
+}
+function paymentLog(){
+  const log = [];
+  state.expenses.forEach(e => {
+    if (e.kind === "payment"){ log.push({kind:"payment", id:e.id, date:e.date||"", from:e.from, to:e.to, amount:+e.amount||0, period:periodOf(e), what:"Payment"}); return; }
+    const sh = sharesOf(e);
+    Object.entries(e.paidOff||{}).forEach(([who, when]) => { const v = sh[who]||0; if (v <= 0.004 || who===e.paidBy || who!==S().me) return;
+      log.push({kind:"mark", id:e.id, person:who, date:when||"", from:who, to:e.paidBy, amount:v, period:periodOf(e), what:`Their part of ${e.kind==="phone"?"Phone":e.category==="Other Shared"?"Other":e.category}${e.vendor&&e.vendor!==e.category?" - "+e.vendor:""}`}); });
+  });
+  return log.sort((a,b) => String(b.date).localeCompare(String(a.date)));
+}
+function renderPayments(banner){
+  const me = ME(); const scope = state.entriesScope;
+  const inRange = d => scope==="year" ? String(d).slice(0,4)===String(state.year) : String(d).slice(0,7)===`${state.year}-${pad(state.month)}`;
+  let log = paymentLog().filter(x => inRange(x.date));
+  if (!state.isOwner) log = log.filter(x => x.from===me || x.to===me);
+  const got = r2(log.filter(x=>x.to===me).reduce((a,x)=>a+x.amount,0)), paid = r2(log.filter(x=>x.from===me).reduce((a,x)=>a+x.amount,0));
+  const label = scope==="year" ? String(state.year) : `${MONTHS[state.month-1]} ${state.year}`;
+  let html = banner + `<section class="hero"><div class="when">${label}</div>
+    <p class="statement" style="color:var(--ink)">${got>0.005 ? `You received <span style="color:var(--owed)">${money(got)}</span>` : "No payments received yet"}</p>
+    <p class="sub">${paid>0.005 ? `You paid out ${money(paid)}.` : ""}</p>${!state.isOwner && me ? whoPicker(false) : ""}</section>
+    <div class="row" style="margin-bottom:12px"><div class="seg" role="group" aria-label="Range"><button data-scope="month" aria-pressed="${scope==="month"}">This month</button><button data-scope="year" aria-pressed="${scope==="year"}">Whole year</button></div>
+    ${state.isOwner && state.db ? `<button class="paybtn" id="payOpen2" style="margin-left:auto">ADD PAYMENT</button>` : ""}</div><div class="panel">`;
+  if (!log.length) html += `<div class="empty">No payments ${scope==="year" ? "this year" : "this month"}.</div>`;
+  else html += `<div class="list">` + log.map(x => {
+    const dir = x.to===me ? `${esc(x.from)} paid you` : x.from===me ? `You paid ${esc(x.to)}` : `${esc(x.from)} paid ${esc(x.to)}`;
+    const undo = state.isOwner ? (x.kind==="payment" ? `<button class="linkbtn danger" data-unpay="${esc(x.id)}">Undo</button>` : `<button class="linkbtn danger" data-unpaidbill="${esc(x.id)}" data-p="${esc(x.person)}">Undo</button>`) : "";
+    return `<div class="item" style="grid-template-columns:92px 1fr auto"><div class="muted">${x.date ? `${MONTHS[+x.date.slice(5,7)-1].slice(0,3)} ${+x.date.slice(8,10)}` : ""}</div>
+      <div><strong>${dir}</strong><div class="meta">${x.kind==="payment" ? (x.to===me ? `Added to ${esc(x.from)}'s account` : "Payment") : `${esc(x.what)} · ${periodLabel(x.period)}`}</div></div>
+      <div style="text-align:right"><div class="amt ${x.to===me?"pos":""}">${money(x.amount)}</div><div class="acts">${undo}</div></div></div>`; }).join("") + `</div>`;
+  html += `</div>`;
+  app.innerHTML = html;
+  app.querySelectorAll("[data-scope]").forEach(b => b.onclick = () => { state.entriesScope = b.dataset.scope; render(); });
+  const po = $("#payOpen2"); if (po) po.onclick = () => openPay();
+  app.querySelectorAll("[data-unpay]").forEach(b => b.onclick = () => confirmFirst(b, async () => { const x = state.expenses.find(e=>e.id===b.dataset.unpay); try { await track(`Removed payment ${x?`${x.from} → ${x.to} ${money(x.amount)}`:""}`, () => wDel("expenses/"+b.dataset.unpay)); toast("Payment removed"); } catch(e){ toast("Couldn't remove it"); } }));
+  wireOwers();
+}
+function renderHistory(banner){
+  const log = (state.log||[]);
+  const when = iso => { const d = new Date(iso); return isNaN(d) ? "" : `${MONTHS[d.getMonth()].slice(0,3)} ${d.getDate()}, ${d.toLocaleTimeString([], {hour:"numeric", minute:"2-digit"})}`; };
+  let html = banner + `<section class="hero"><p class="statement" style="color:var(--ink)">History</p><p class="sub">Everything you've changed, newest first. Undo puts things back the way they were before that change.</p></section><div class="panel">`;
+  if (!log.length) html += `<div class="empty">Nothing yet. Changes you make from now on will show up here.</div>`;
+  else html += `<div class="list">` + log.map(x => `<div class="item" style="grid-template-columns:120px 1fr auto"><div class="muted" style="font-size:13px">${esc(when(x.at))}</div>
+      <div><strong style="${x.undoneAt?"text-decoration:line-through;color:var(--muted)":""}">${esc(x.label)}</strong><div class="meta">${(x.changes||[]).length} change${(x.changes||[]).length===1?"":"s"}${x.undoneAt?` · undone ${esc(when(x.undoneAt))}`:""}</div></div>
+      <div>${x.undoneAt ? `<span class="muted" style="font-size:13px">Undone</span>` : `<button class="linkbtn danger" data-undolog="${esc(x.id)}">Undo</button>`}</div></div>`).join("") + `</div>`;
+  html += `</div>`;
+  app.innerHTML = html;
+  app.querySelectorAll("[data-undolog]").forEach(b => b.onclick = () => confirmFirst(b, async () => {
+    const entry = log.find(x => x.id === b.dataset.undolog); if (!entry) return;
+    b.disabled = true; try { await undoLog(entry); toast("Undone"); } catch(e){ b.disabled = false; toast("Couldn't undo that"); }
+  }));
+}
+function renderBalances(banner){
+  const s = S(); const me = ME(); const {rows, cum:cum0} = periodBalances();
+  const cum = Object.fromEntries(Object.entries(cum0).map(([p,v]) => [p, p===S().me ? v : r2(v + accountOf(p).account)]));
+  const moves = settleUp(cum);
+  const toMe = moves.filter(m=>m.to===me), fromMe = moves.filter(m=>m.from===me);
+  const owedToMe = toMe.reduce((a,m)=>a+m.amt,0), iOwe = fromMe.reduce((a,m)=>a+m.amt,0);
+  let hero;
+  if (!me) hero = `<p class="statement settled">Pick your name above.</p>`;
+  else hero = `<p class="statement" style="color:var(--ink)">${owedToMe>0.005?`People owe you <span style="color:var(--owed)">${money(owedToMe)}</span>`:"Nobody owes you anything right now"}</p>
+    <p class="sub" style="font-size:17px">${iOwe>0.005?`You owe <strong class="neg">${money(iOwe)}</strong>: ${fromMe.map(m=>`${money(m.amt)} to ${esc(m.to)}`).join(", ")}.`:"You don't owe anyone."}</p>`;
+  let html = banner + `<section class="hero"><div class="when">All months, still unpaid</div>${hero}${!state.isOwner && me ? whoPicker(false) : ""}</section>`;
+  // each person's account
+  const nowP = `${today.getFullYear()}-${pad(today.getMonth()+1)}`;
+  const accts = s.people.filter(p => p!==me).map(p => ({p, ...accountOf(p)}));
+  html += `<h2>Accounts</h2><div class="panel accts"><table><thead><tr><th>Person</th><th>Credit</th><th class="hide-sm">Open bills</th><th>Balance</th>${state.isOwner && state.db ? "<th></th>" : ""}</tr></thead><tbody>` +
+    accts.map(a => { const bal = r2(a.account - a.unpaid);
+      return `<tr><td>${esc(a.p)}</td><td class="${a.account>0.005?'pos':''}">${a.account>0.005?money(a.account):'<span class="muted">—</span>'}</td><td class="hide-sm">${a.unpaid>0.005?money(a.unpaid):'<span class="muted">—</span>'}</td>
+        <td class="${bal< -0.005?'neg':bal>0.005?'pos':''}">${Math.abs(bal)<0.005?"$0.00":(bal<0?`-${money(-bal)}`:`+${money(bal)}`)}</td>
+        ${state.isOwner && state.db ? `<td><div class="acts2"><button class="btn sm" data-addmoney="${esc(a.p)}" aria-label="Add money for ${esc(a.p)}">Add</button>${a.account>0.005 && a.unpaid>0.005 ? `<button class="btn primary sm" data-usecredit="${esc(a.p)}" aria-label="Use ${esc(a.p)}'s credit">Use</button>` : ""}</div></td>` : ""}</tr>`; }).join("") +
+    `</tbody></table><p class="muted" style="margin:10px 0 0;font-size:13px">Balance: − means they owe, + means extra credit. “Add” puts money in their account. “Use” pays their open bills from it: oldest first, mortgage last, whole bills only.</p></div>`;
+  // per person
+  html += `<h2>Open balance by person</h2><div class="panel">`;
+  const open = s.people.filter(p => p!==me && Math.abs(cum[p]||0) > 0.005);
+  if (!open.length) html += `<div class="empty">Everyone is settled up.</div>`;
+  else html += `<div class="list">` + open.map(p => {
+    const b = cum[p]; const months = rows.filter(r => (r.balance[p]||0) < -0.005).map(r=>MONTHS[+r.period.slice(5)-1].slice(0,3)+" "+r.period.slice(0,4));
+    const acct = accountOf(p).account;
+    return `<div class="obrow"><div class="obname"><strong>${esc(p)}</strong><div class="meta">${b<0 ? `Unpaid: ${months.join(", ")||"earlier"}` : `Paid more than their share`}${acct>0.005 ? ` · ${money(acct)} credit` : ""}</div></div>
+      <div class="amt ${b<0?"neg":"pos"}">${b<0?`-${money(-b)}`:`+${money(b)}`}</div>${state.isOwner && b<0 ? `<button class="btn sm" data-stmtall="${esc(p)}" aria-label="Preview PDF of everything ${esc(p)} owes">PDF</button>` : "<span></span>"}</div>`; }).join("") + `</div>`;
+  html += `</div>`;
+  // by month
+  const people = s.people.filter(p => p!==me && rows.some(r => Math.abs(r.balance[p]||0) > 0.005));
+  const openRows = rows.filter(r => people.some(p => Math.abs(r.balance[p]||0) > 0.005));
+  html += `<h2>What's still open, month by month</h2><div class="panel accts">${openRows.length ? `<table><thead><tr><th>Month</th>${people.map(p=>`<th>${esc(p)}</th>`).join("")}</tr></thead><tbody>` +
+    openRows.map(r=>`<tr><td><span class="hide-sm">${periodLabel(r.period)}</span><span class="show-sm">${MONTHS[+r.period.slice(5)-1].slice(0,3)} ${r.period.slice(2,4)}</span></td>${people.map(p=>{ const b=r.balance[p]||0; return `<td class="${b< -0.005?'neg':b>0.005?'pos':''}">${Math.abs(b)<0.005?'<span class="muted">—</span>':`<span class="hide-sm">${money(b)}</span><span class="show-sm">${moneyShort(b)}</span>`}</td>`; }).join("")}</tr>`).join("") +
+    `</tbody><tfoot><tr><td>Total</td>${people.map(p=>{ const b=cum[p]||0; return `<td class="${b< -0.005?'neg':b>0.005?'pos':''}">${Math.abs(b)<0.005?"—":`<span class="hide-sm">${money(b)}</span><span class="show-sm">${moneyShort(b)}</span>`}</td>`; }).join("")}</tr></tfoot></table>
+    <p class="muted" style="margin:10px 0 0;font-size:13px">− = still owes for that month.</p>` : `<p class="muted" style="margin:0">Nothing open.</p>`}</div>`;
+  if (state.isOwner && state.db){
+  }
+  app.innerHTML = html;
+  app.querySelectorAll("[data-addmoney]").forEach(b => b.onclick = () => openPay(b.dataset.addmoney));
+  app.querySelectorAll("[data-usecredit]").forEach(b => b.onclick = async () => { b.disabled = true; try { await payFromAccount(b.dataset.usecredit, [nowP, ...rows.map(r=>r.period)].sort().pop()); } catch(x){ toast("Couldn't update the bills"); } b.disabled = false; });
+  app.querySelectorAll("[data-stmtall]").forEach(b => b.onclick = async () => {
+    const keepY = state.year, keepM = state.month; const last = rows.length ? rows[rows.length-1].period : `${today.getFullYear()}-${pad(today.getMonth()+1)}`;
+    const nowP = `${today.getFullYear()}-${pad(today.getMonth()+1)}`; const p = last > nowP ? last : nowP;
+    state.year = +p.slice(0,4); state.month = +p.slice(5);
+    const t = b.textContent; b.disabled = true; b.textContent = "Building…";
+    try { await previewStatement(b.dataset.stmtall, b, false, "all"); } catch(x){ toast("Couldn't make the PDF"); }
+    state.year = keepY; state.month = keepM; b.disabled = false; b.textContent = t; });
+  app.querySelectorAll("[data-unpay]").forEach(b => b.onclick = () => confirmFirst(b, async () => { const x = state.expenses.find(e=>e.id===b.dataset.unpay); try { await track(`Removed payment ${x?`${x.from} → ${x.to} ${money(x.amount)}`:""}`, () => wDel("expenses/"+b.dataset.unpay)); toast("Payment removed"); } catch(e){ toast("Couldn't remove it"); } }));
+}
+
+// ---------- Settings ----------
+async function exportAll(btn){
+  if (!state.downloads){ toast("Downloads aren't available here"); return; }
+  const ids = new Set(); [...state.expenses, ...state.personal].forEach(e => { (e.photos||[]).forEach(i => ids.add(i)); if (e.pdf) ids.add(e.pdf); });
+  const assets = {}; let n = 0;
+  for (const id of ids){
+    n++; if (btn) btn.textContent = `Packing photos ${n}/${ids.size}…`;
+    try { const r = await fetch(await signedUrl(id)); if (!r.ok) continue; const b = await r.blob();
+      assets[id] = await new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = rej; fr.readAsDataURL(b); }); } catch(x){}
+  }
+  const out = {format:"41-green-drive-export", version:1, exportedAt:new Date().toISOString(), settings:state.settings, expenses:state.expenses, personal:state.personal, log:state.log||[], assets};
+  await state.downloads.save({filename:`41-green-drive-export-${isoToday}.json`, data:new Blob([JSON.stringify(out)], {type:"application/json"})});
+  toast(`Exported ${state.expenses.length} entries and ${Object.keys(assets).length} photos/PDFs`);
+}
+async function saveSettings(next){ if (!state.db) { toast("Your ledger isn't connected"); return; } await wSet("settings/main", next); }
+function renderSettings(banner){
+  const s = JSON.parse(JSON.stringify(S()));
+  let html = banner + `<section class="hero"><p class="statement" style="color:var(--ink)">Settings</p><p class="sub">Who's in the house, how each bill is split, and who owns each phone line.</p></section>`;
+  html += `<h2>Sharing with your brothers</h2><div class="panel"><p style="margin-top:0">On the Month page, tap “Preview PDF” next to each person, check it, then tap “Share”. Their PDF shows only their part of each bill, what they owe, and the bill photos. Send it by text or email; they don't need an account to open it.</p><p class="muted" style="margin-bottom:0">Your not-split expenses never appear in anyone's PDF.</p></div>`;
+  html += `<h2>Import from the Claude version</h2><div class="panel"><p style="margin-top:0">In the Claude version, go to Settings and tap <b>Export all data</b>. Then pick that file here. Everything comes over: bills, payments, settings, history and every photo/PDF.</p><label class="btn primary" style="display:inline-block;cursor:pointer" id="importLbl">Import file<input type="file" id="importFile" accept="application/json,.json" hidden></label> <span class="status" id="importMsg" style="margin:0"></span></div>`;
+  const hasKey = !!getApiKey();
+  html += `<h2>Bill reading</h2><div class="panel"><p style="margin-top:0">Paste your Anthropic API key to read PDFs and photos automatically. It's saved <b>only on this device</b> (not on the website or in your database). Add it once on each phone or computer you use.</p>
+    <div class="row"><input id="apiKey" type="password" autocomplete="off" placeholder="${hasKey ? "Key saved on this device" : "sk-ant-…"}" style="flex:1;min-width:200px;padding:9px 10px;border:1px solid var(--line);border-radius:var(--radius-sm);background:var(--sunk);color:var(--ink)">
+    <button class="btn primary" id="apiSave">Save</button>${hasKey ? `<button class="btn danger" id="apiDel">Remove</button>` : ""}</div>
+    <p class="muted" style="font-size:13px;margin-bottom:0">${hasKey ? "✓ Bill reading is on for this device." : "Bill reading is off on this device."}</p></div>`;
+  html += `<h2>Backup</h2><div class="panel"><p style="margin-top:0">Download everything (entries, settings, history, photos) as one file. Keep it somewhere safe; you can import it here any time.</p><button class="btn" id="exportBtn2">Export all data</button></div>`;
+  html += `<h2>Account</h2><div class="panel"><button class="btn" id="signOutBtn">Sign out</button></div>`;
+  html += `<h2>People</h2><div class="panel"><div class="grid">
+    <label class="f">You are<select id="sMe">${s.people.map(p=>`<option ${p===s.me?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+    <label class="f">Everyone (comma separated)<input id="sPeople" value="${esc(s.people.join(", "))}"></label></div>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Renaming someone here won't rename them on past entries.</p></div>`;
+  html += `<h2>How each shared bill is split (%)</h2><div class="panel scroll"><table><thead><tr><th>Bill</th>${s.people.map(p=>`<th>${esc(p)}</th>`).join("")}<th>Total</th></tr></thead><tbody>`;
+  SHARED.forEach(c => { const sp = s.splits[c]||{}; const tot = s.people.reduce((a,p)=>a+(+sp[p]||0),0);
+    html += `<tr><td>${c==="Other Shared"?"Other":c}</td>${s.people.map(p=>`<td><input data-sp="${esc(c)}" data-p="${esc(p)}" inputmode="decimal" value="${+sp[p]||0}" style="max-width:80px;text-align:right"></td>`).join("")}<td class="${Math.abs(tot-100)>0.05?"neg":""}">${r2(tot)}%</td></tr>`; });
+  html += `</tbody></table></div>`;
+  html += `<h2>Phone lines</h2><div class="panel scroll">${(s.lines||[]).length ? `<table><thead><tr><th>Last 4</th><th>Name on bill</th><th>Belongs to</th><th>Type</th><th></th></tr></thead><tbody>` +
+    s.lines.map((l,i)=>`<tr><td><input data-ln="${i}" data-f="last4" value="${esc(l.last4)}" style="max-width:90px"></td><td><input data-ln="${i}" data-f="label" value="${esc(l.label)}"></td>
+      <td><select data-ln="${i}" data-f="assignedTo">${[...s.people,SPLIT_BY_LINES].map(p=>`<option ${p===l.assignedTo?"selected":""}>${esc(p)}</option>`).join("")}</select></td>
+      <td><select data-ln="${i}" data-f="type">${["Phone","Subscription","Account"].map(t=>`<option ${t===l.type?"selected":""}>${t}</option>`).join("")}</select></td>
+      <td><button class="linkbtn danger" data-lrm="${i}">Remove</button></td></tr>`).join("") + `</tbody></table>` : `<p class="muted" style="margin:0">No lines yet. They'll be added the first time you save a Verizon bill with “Remember” checked, or add them here.</p>`}
+    <p style="margin-bottom:0"><button class="linkbtn" id="addLn">+ Add line</button></p>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Phones per person (used for “Split by lines”): ${Object.entries(lineCounts()).map(([p,c])=>`${esc(p)} ${c}`).join(", ")}</p></div>`;
+  const adj = s.lineAdjustments || [];
+  html += `<h2>Standing line adjustments</h2><div class="panel">${adj.length ? `<div class="scroll"><table style="min-width:0"><thead><tr><th>Add to line</th><th>Take from line</th><th>Amount ($)</th><th></th></tr></thead><tbody>${adj.map((a,i)=>`<tr><td><input data-adj="${i}" data-f="to" value="${esc(a.to)}" style="max-width:90px"></td><td><input data-adj="${i}" data-f="from" value="${esc(a.from)}" style="max-width:90px"></td><td><input data-adj="${i}" data-f="amount" inputmode="decimal" value="${esc(a.amount)}" style="max-width:90px;text-align:right"></td><td><button class="linkbtn danger" data-adjrm="${i}">Remove</button></td></tr>`).join("")}</tbody></table></div>` : `<p class="muted" style="margin:0">None.</p>`}
+    <p style="margin-bottom:0"><button class="linkbtn" id="addAdj">+ Add adjustment</button></p>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Applied automatically each time a Verizon bill is read. Uses the last 4 digits of each line.</p></div>`;
+  const rec = s.recurring || [];
+  html += `<h2>Monthly recurring bills</h2><div class="panel">${rec.length ? rec.map((r,i)=>{ const tot = s.people.reduce((a,p)=>a+(+(r.shares||{})[p]||0),0); return `<div style="border-bottom:1px solid var(--line);padding:10px 0 14px">
+      <div class="grid">
+        <label class="f">Name<input data-rc="${i}" data-f="name" value="${esc(r.name)}"></label>
+        <label class="f">Amount ($)<input data-rc="${i}" data-f="amount" inputmode="decimal" value="${esc(r.amount)}"></label>
+        <label class="f">Added on day<input data-rc="${i}" data-f="day" inputmode="numeric" value="${esc(r.day||25)}"></label>
+        <label class="f">Paid by<select data-rc="${i}" data-f="paidBy">${s.people.map(p=>`<option ${p===r.paidBy?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+        <label class="f">Starts<input type="month" data-rc="${i}" data-f="start" value="${esc(r.start)}"></label>
+        <label class="f">Covers from day (e.g. 10 → 10th to 10th)<input data-rc="${i}" data-f="serviceDay" inputmode="numeric" value="${esc(r.serviceDay||"")}" placeholder="none"></label>
+        <label class="f">Active<select data-rc="${i}" data-f="active"><option value="yes" ${r.active!==false?"selected":""}>Yes</option><option value="no" ${r.active===false?"selected":""}>Paused</option></select></label>
+      </div>
+      <div class="scroll" style="margin-top:10px"><table style="min-width:0"><thead><tr><th>Each person's part ($)</th>${s.people.map(p=>`<th>${esc(p)}</th>`).join("")}<th>Total</th></tr></thead><tbody><tr><td></td>${s.people.map(p=>`<td><input data-rs="${i}" data-p="${esc(p)}" inputmode="decimal" value="${+(r.shares||{})[p]||0}" style="max-width:90px;text-align:right"></td>`).join("")}<td class="${Math.abs(tot-(+r.amount||0))>0.01?"neg":""}">${money(tot)}</td></tr></tbody></table></div>
+      <p style="margin:6px 0 0"><button class="linkbtn danger" data-rcrm="${i}">Remove</button></p></div>`; }).join("") : `<p class="muted" style="margin:0">None yet.</p>`}
+    <p style="margin-bottom:0"><button class="linkbtn" id="addRc">+ Add monthly bill</button></p>
+    <p class="muted" style="font-size:13px;margin-bottom:0">Each one is added automatically on that day every month. Changes apply to this month and future months. Earlier months keep their amounts.</p></div>`;
+  html += `<h2>Not-split categories (comma separated)</h2><div class="panel"><label class="f"><input id="sPc" value="${esc((s.personalCategories||PERSONAL_DEFAULT).join(", "))}"></label></div>`;
+  html += `<div class="row" style="margin-top:18px"><button class="btn primary" id="sSave">Save settings</button><span class="status" id="sMsg"></span></div>`;
+  app.innerHTML = html;
+  const collect = () => {
+    const people = $("#sPeople").value.split(",").map(x=>x.trim()).filter(Boolean);
+    const next = { ...s, people: people.length?people:s.people, me: $("#sMe").value, personalCategories: $("#sPc").value.split(",").map(x=>x.trim()).filter(Boolean) };
+    if (!next.people.includes(next.me)) next.me = next.people[0];
+    next.people = [...next.people.filter(p => p !== next.me), next.me];   // you always last
+    const splits = {}; SHARED.forEach(c => { splits[c] = {}; next.people.forEach(p => splits[c][p] = +((s.splits[c]||{})[p]||0)); });
+    app.querySelectorAll("[data-sp]").forEach(el => { if (splits[el.dataset.sp] && next.people.includes(el.dataset.p)) splits[el.dataset.sp][el.dataset.p] = +el.value || 0; });
+    next.splits = splits;
+    next.lineAdjustments = (s.lineAdjustments||[]).map((a,i)=>{ const row = {...a}; app.querySelectorAll(`[data-adj="${i}"]`).forEach(el => row[el.dataset.f] = el.dataset.f==="amount" ? r2(el.value.replace(/[$,\s]/g,"")) : el.value.trim()); return row; }).filter(a => a.to && a.from && a.amount);
+    next.recurring = (s.recurring||[]).map((r,i)=>{ const row = {...r, shares:{...(r.shares||{})}};
+      app.querySelectorAll(`[data-rc="${i}"]`).forEach(el => { const f = el.dataset.f; row[f] = f==="amount" ? r2(el.value.replace(/[$,\s]/g,"")) : f==="day" ? Math.min(28, Math.max(1, parseInt(el.value)||25)) : f==="serviceDay" ? (parseInt(el.value) ? Math.min(28, Math.max(1, parseInt(el.value))) : "") : f==="active" ? el.value!=="no" : el.value.trim(); });
+      app.querySelectorAll(`[data-rs="${i}"]`).forEach(el => row.shares[el.dataset.p] = r2(el.value.replace(/[$,\s]/g,"")));
+      return row; }).filter(r => r.name && r.amount > 0);
+    next.lines = (s.lines||[]).map((l,i)=>{ const row = {...l}; app.querySelectorAll(`[data-ln="${i}"]`).forEach(el => row[el.dataset.f] = el.value.trim()); return row; }).filter(l => l.last4);
+    return next;
+  };
+  const so = $("#signOutBtn"); if (so) so.onclick = signOut;
+  const ak = $("#apiSave"); if (ak) ak.onclick = () => { const v = $("#apiKey").value.trim(); if (!/^sk-ant-/.test(v)){ toast("That doesn't look like an Anthropic API key (it starts with sk-ant-)"); return; } try { localStorage.setItem(KEY_STORE, v); toast("Saved on this device"); } catch(x){ toast("Couldn't save on this device"); } renderSettings(banner); };
+  const ad = $("#apiDel"); if (ad) ad.onclick = () => { try { localStorage.removeItem(KEY_STORE); } catch(x){} toast("Removed from this device"); renderSettings(banner); };
+  const eb = $("#exportBtn2"); if (eb) eb.onclick = async () => { const t = eb.textContent; eb.disabled = true; try { await exportAll(eb); } catch(x){ toast("Export failed. Try again."); } eb.disabled = false; eb.textContent = t; };
+  const imf = $("#importFile"); if (imf) imf.onchange = async () => { const f = imf.files[0]; if (!f) return; const msg = $("#importMsg"); const lbl = $("#importLbl");
+    try { const r = await importAll(f, {set textContent(t){ msg.textContent = t; }}); msg.textContent = `Imported ${r.entries} entries and ${r.photos} photos/PDFs.`; toast("Import finished"); }
+    catch(x){ msg.textContent = x.message || "Import failed."; } imf.value = ""; };
+  $("#sSave").onclick = async () => {
+    const next = collect();
+    const bad = SHARED.filter(c => Math.abs(next.people.reduce((a,p)=>a+(+next.splits[c][p]||0),0) - 100) > 0.05);
+    const badRc = (next.recurring||[]).filter(r => Math.abs(next.people.reduce((a,p)=>a+(+r.shares[p]||0),0) - r.amount) > 0.01);
+    if (badRc.length){ $("#sMsg").textContent = `Each person's parts must add up to the amount for: ${badRc.map(r=>r.name).join(", ")}.`; return; }
+    if (bad.length){ $("#sMsg").textContent = `Each bill must add up to 100%. Check: ${bad.map(c=>c==="Other Shared"?"Other":c).join(", ")}.`; return; }
+    try {
+      await track("Changed settings", async () => {
+      await saveSettings(next);
+      // apply recurring-bill changes to this month's and later entries that were already added
+      const nowP = `${today.getFullYear()}-${pad(today.getMonth()+1)}`; let changed = 0;
+      for (const r of (next.recurring||[])){
+        // start moved later (or bill paused): remove auto-added months before the start that nobody has paid on
+        for (const e of state.expenses.filter(x => x.recurringId===r.id && (periodOf(x) < r.start) && !Object.keys(x.paidOff||{}).length)){
+          await wDel("expenses/"+e.id); changed++;
+        }
+        for (const e of state.expenses.filter(x => x.recurringId===r.id && periodOf(x) >= nowP)){
+          const same = e.amount===r2(r.amount) && e.paidBy===r.paidBy && e.category===r.name && JSON.stringify(e.fixedShares||{})===JSON.stringify(r.shares||{});
+          if (same) continue;
+          const {id, ...body} = e;
+          await wSet("expenses/"+id, {...JSON.parse(JSON.stringify(body)), amount:r2(r.amount), paidBy:r.paidBy, category:r.name, vendor:r.name, fixedShares:{...r.shares}, updatedAt:new Date().toISOString()});
+          changed++;
+        }
+      }
+      });
+      toast(changed ? `Settings saved · ${changed} monthly bill${changed>1?"s":""} updated` : "Settings saved");
+    } catch(e){ toast("Couldn't save settings"); }
+  };
+  $("#addAdj").onclick = () => { const next = collect(); next.lineAdjustments = [...(next.lineAdjustments||[]), {to:"", from:"", amount:""}]; state.settings = next; renderSettings(banner); };
+  app.querySelectorAll("[data-adjrm]").forEach(b => b.onclick = () => { const next = collect(); next.lineAdjustments = (s.lineAdjustments||[]).filter((_,i)=>i!==+b.dataset.adjrm); state.settings = next; renderSettings(banner); });
+  $("#addRc").onclick = () => { const next = collect(); next.recurring = [...(next.recurring||[]), {id:"r"+Date.now().toString(36), name:"New bill", amount:0, day:25, paidBy:next.me, start:`${today.getFullYear()}-${pad(today.getMonth()+1)}`, active:true, shares:{}, skip:[]}]; state.settings = next; renderSettings(banner); };
+  app.querySelectorAll("[data-rcrm]").forEach(b => b.onclick = () => { const next = collect(); next.recurring = (s.recurring||[]).filter((_,i)=>i!==+b.dataset.rcrm).map(r=>next.recurring.find(x=>x.id===r.id)||r); state.settings = next; renderSettings(banner); });
+  $("#addLn").onclick = () => { const next = collect(); next.lines.push({last4:"",label:"",assignedTo:next.people[0],type:"Phone"}); state.settings = next; renderSettings(banner); };
+  app.querySelectorAll("[data-lrm]").forEach(b => b.onclick = () => { const next = collect(); next.lines.splice(+b.dataset.lrm,1); state.settings = next; renderSettings(banner); });
+}
+
+function openPay(presetFrom, presetAmt){
+  const s = S(); const me = ME(); const {rows, cum:cum0} = periodBalances();
+  const cum = Object.fromEntries(Object.entries(cum0).map(([p,v]) => [p, p===S().me ? v : r2(v + accountOf(p).account)]));
+  const others = s.people.filter(p=>p!==me);
+  const firstOwing = (typeof presetFrom === "string" && others.includes(presetFrom)) ? presetFrom : (others.find(p => (cum[p]||0) < -0.005) || others[0]);
+  const nowP = `${today.getFullYear()}-${pad(today.getMonth()+1)}`;
+  const periods = [...new Set([...rows.map(r=>r.period), nowP])].sort();
+  $("#payBody").innerHTML = `<div class="grid">
+    <label class="f">From<select id="dFrom">${s.people.map(p=>`<option ${p===firstOwing?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+    <label class="f">To<select id="dTo">${s.people.map(p=>`<option ${p===me?"selected":""}>${esc(p)}</option>`).join("")}</select></label>
+    <label class="f">Amount ($)<input id="dAmt" inputmode="decimal"></label>
+    <label class="f">Date received<input type="date" id="dDate" value="${isoToday}"></label></div>
+    <div class="check" id="dHint" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:14px"><button class="btn primary" id="dSave" style="background:var(--paybtn);border-color:var(--paybtn);color:#fff">Add payment</button><button class="btn" id="dCancel">Cancel</button></div>`;
+  const from = $("#dFrom"), to = $("#dTo"), amt = $("#dAmt");
+  const hint = () => { const p = from.value; const owe = -(cum[p]||0);
+    $("#dHint").textContent = to.value===me ? (owe > 0.005 ? `${p} still owes ${money(owe)} in total. This payment goes into ${p}'s account.` : `${p} doesn't owe anything right now. This payment goes into ${p}'s account.`) : `This is money you're paying ${to.value}.`;
+    amt.placeholder = owe > 0.005 ? String(r2(owe)) : ""; };
+  from.onchange = hint; to.onchange = hint; hint();
+  const close = () => $("#payDlg").classList.remove("open");
+  $("#dCancel").onclick = close;
+  $("#payDlg").onclick = e => { if (e.target.id === "payDlg") close(); };
+  $("#dSave").onclick = async () => {
+    const a = r2(String(amt.value).replace(/[$,\s]/g,""));
+    if (!(a>0)) { $("#dHint").textContent = "Enter an amount."; return; }
+    if (from.value === to.value){ $("#dHint").textContent = "From and To must be different people."; return; }
+    $("#dSave").disabled = true;
+    try { await track(`Payment ${from.value} → ${to.value} ${money(a)}`, () => wAdd("expenses", {kind:"payment", from:from.value, to:to.value, amount:a, date:$("#dDate").value||isoToday, period:($("#dDate").value||isoToday).slice(0,7), updatedAt:new Date().toISOString()})); close(); toast(`Recorded ${money(a)} from ${from.value}`); }
+    catch(x){ $("#dSave").disabled = false; toast("Couldn't record the payment"); }
+  };
+  if (typeof presetAmt === "number" && presetAmt > 0.005) amt.value = r2(presetAmt);
+  $("#payDlg").classList.add("open"); amt.focus();
+}
+$("#payOpen").onclick = () => openPay();
+document.addEventListener("keydown", e => { if (e.key==="Escape") $("#payDlg").classList.remove("open"); });
+function wireGo(){ app.querySelectorAll("[data-go]").forEach(b => b.onclick = () => { if (b.dataset.go==="add"){ state.draft=null; } setView(b.dataset.go); }); }
+
+// ---------- boot ----------
+const busy = () => (state.view==="add" && state.draft) || state.view==="settings";
+const nextPeriod = p => { let [y,m] = p.split("-").map(Number); m++; if (m>12){m=1;y++;} return `${y}-${pad(m)}`; };
+async function runRecurring(){
+  if (state.recurRunning || !state.isOwner || !state.db || !state.gotExp || !state.gotSettings) return;
+  state.recurRunning = true; try {
+  const s = S(); const now = `${today.getFullYear()}-${pad(today.getMonth()+1)}`; let added = 0;
+  for (const r of (s.recurring||[])){
+    if (r.active === false || !/^\d{4}-\d{2}$/.test(r.start||"") || !(+r.amount)) continue;
+    let p = r.start, guard = 0;
+    while (p <= now && guard++ < 60){
+      const [y,m] = p.split("-").map(Number); const day = Math.min(+r.day||25, new Date(y,m,0).getDate());
+      const due = p < now || today.getDate() >= day;
+      const id = `rec-${r.id}-${p}`;
+      if (due && !(r.skip||[]).includes(p) && !state.expenses.some(e=>e.id===id)){
+        const sd = parseInt(r.serviceDay); let svc = {};
+        if (sd >= 1 && sd <= 28){ const [py,pm] = p.split("-").map(Number); const prev = pm===1 ? `${py-1}-12` : `${py}-${pad(pm-1)}`; svc = {serviceFrom:`${prev}-${pad(sd)}`, serviceTo:`${p}-${pad(sd)}`}; }
+        try { await state.db.collection("expenses").doc(id).set({...svc, kind:"shared", recurringId:r.id, category:r.name, vendor:r.name, amount:r2(r.amount), paidBy:r.paidBy, fixedShares:{...r.shares}, date:`${p}-${pad(day)}`, period:p, notes:"", photos:[], pdf:null, updatedAt:new Date().toISOString()}); added++; } catch(x){}
+      }
+      p = nextPeriod(p);
+    }
+  }
+  if (added) toast(`${added} monthly bill${added>1?"s":""} added`);
+  } finally { state.recurRunning = false; }
+}
+async function migratePersonal(){
+  if (state.migrated || !state.isOwner) return;
+  const old = state.expenses.filter(e=>e.kind==="personal"); if (!old.length) return;
+  state.migrated = true;
+  for (const e of old){ const {id, ...body} = e; try { await state.db.collection(PRIVATE).doc(id).set(body); await state.db.doc("expenses/"+id).delete(); } catch(x){} }
+}
+render();
+// ---------- Supabase connection (replaces the Claude-only features) ----------
+const SB = window.GD_CONFIG || {};
+let sb = null, uid = null;
+const rid = (n=20) => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(x => "abcdefghijklmnopqrstuvwxyz0123456789"[x % 36]).join(""); };
+const hexId = () => { const a = new Uint8Array(16); crypto.getRandomValues(a); return [...a].map(x => x.toString(16).padStart(2,"0")).join(""); };
+
+// signed links for private photos/PDFs
+async function ensureSigned(ids){
+  const need = [...new Set(ids)].filter(i => i && !signed[i]);
+  if (!need.length || !sb) return false;
+  const { data } = await sb.storage.from("bills").createSignedUrls(need.map(i => `${uid}/${i}`), 60*60*24*7);
+  (data||[]).forEach((d, k) => { if (d && d.signedUrl) signed[need[k]] = d.signedUrl; });
+  return true;
+}
+async function signedUrl(id){ await ensureSigned([id]); return signed[id] || ""; }
+function assetIds(){ const s = new Set(); [...state.expenses, ...state.personal].forEach(e => { (e.photos||[]).forEach(i => s.add(i)); if (e.pdf) s.add(e.pdf); }); return [...s]; }
+
+// a small document store on top of the "docs" table, with live updates
+function makeDb(){
+  const cache = new Map(); const subs = new Set();
+  const notify = () => subs.forEach(f => { try { f(); } catch(x){} });
+  const inColl = (coll, path) => path.startsWith(coll + "/") && !path.slice(coll.length+1).includes("/");
+  const snapDoc = (path) => ({ id: path.split("/").pop(), exists: cache.has(path), data: () => clone(cache.get(path)) });
+  const put = async (path, data) => { cache.set(path, clone(data)); notify();
+    const { error } = await sb.from("docs").upsert({ owner: uid, path, data, updated_at: new Date().toISOString() }); if (error) throw error; };
+  const del = async (path) => { cache.delete(path); notify();
+    const { error } = await sb.from("docs").delete().eq("owner", uid).eq("path", path); if (error) throw error; };
+  const docRef = (path) => ({ id: path.split("/").pop(), path,
+    get: async () => snapDoc(path),
+    set: (d) => put(path, d),
+    update: (d) => put(path, { ...(cache.get(path)||{}), ...d }),
+    delete: () => del(path),
+    onSnapshot: (next) => { const f = () => next(snapDoc(path)); subs.add(f); setTimeout(f); return () => subs.delete(f); } });
+  const query = (coll, order, lim) => ({
+    orderBy: (field, dir="asc") => query(coll, {field, dir}, lim),
+    limit: (n) => query(coll, order, n),
+    where: () => query(coll, order, lim),
+    onSnapshot: (next) => { const f = () => {
+        let docs = [...cache.keys()].filter(k => inColl(coll, k)).map(snapDoc);
+        if (order) docs.sort((a,b) => { const x = a.data()[order.field], y = b.data()[order.field]; return (x > y ? 1 : x < y ? -1 : 0) * (order.dir==="desc" ? -1 : 1); });
+        if (lim) docs = docs.slice(0, lim);
+        next({ docs, size: docs.length, empty: !docs.length }); };
+      subs.add(f); setTimeout(f); return () => subs.delete(f); } });
+  const collRef = (coll) => ({ ...query(coll), path: coll,
+    doc: (id) => docRef(coll + "/" + (id || rid())),
+    add: async (d) => { const r = docRef(coll + "/" + rid()); await r.set(d); return r; } });
+  return {
+    doc: docRef, collection: collRef,
+    async load(){ let from = 0; for(;;){ const { data, error } = await sb.from("docs").select("path,data").eq("owner", uid).range(from, from+999); if (error) throw error; (data||[]).forEach(r => cache.set(r.path, r.data)); if (!data || data.length < 1000) break; from += 1000; } notify(); },
+    live(){ sb.channel("docs-" + uid).on("postgres_changes", { event: "*", schema: "public", table: "docs", filter: `owner=eq.${uid}` }, (p) => {
+        if (p.eventType === "DELETE"){ const path = p.old && p.old.path; if (path && cache.has(path)){ cache.delete(path); notify(); } }
+        else if (p.new && p.new.path){ cache.set(p.new.path, p.new.data); notify(); } }).subscribe(); },
+    async bulk(rows){ for (let i=0; i<rows.length; i+=200){ const { error } = await sb.from("docs").upsert(rows.slice(i, i+200).map(r => ({ owner: uid, path: r.path, data: r.data, updated_at: new Date().toISOString() }))); if (error) throw error; } rows.forEach(r => cache.set(r.path, r.data)); notify(); }
+  };
+}
+function makeAssets(){
+  return {
+    async upload(blob, opts={}){ const id = hexId(); const { error } = await sb.storage.from("bills").upload(`${uid}/${id}`, blob, { contentType: opts.contentType || blob.type || "application/octet-stream", upsert: false }); if (error) throw error; await ensureSigned([id]); return { id, url: signed[id] }; },
+    async uploadAs(id, blob, contentType){ const { error } = await sb.storage.from("bills").upload(`${uid}/${id}`, blob, { contentType, upsert: true }); if (error) throw error; },
+    async delete(id){ await sb.storage.from("bills").remove([`${uid}/${id}`]); delete signed[id]; }
+  };
+}
+const toB64 = (blob) => new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(",")[1]); fr.onerror = rej; fr.readAsDataURL(blob); });
+function parseJsonLoose(text){ const t = String(text||"").replace(/```json|```/g, "").trim(); try { return JSON.parse(t); } catch(x){} const a = t.indexOf("{"), b = t.lastIndexOf("}"); if (a >= 0 && b > a){ try { return JSON.parse(t.slice(a, b+1)); } catch(x){} } const e = new Error("invalid_json"); e.code = "invalid_json"; throw e; }
+// Bill reading runs straight from the website: your Anthropic API key is kept on this device only (never in the code or the database).
+const KEY_STORE = "gd-anthropic-key";
+const getApiKey = () => { try { return localStorage.getItem(KEY_STORE) || ""; } catch(x){ return ""; } };
+function makeSample(){
+  return {
+    limits: async () => ({ images: { maxCount: 6 } }),
+    async json(prompt, opts={}){
+      const key = getApiKey();
+      if (!key){ const e = new Error("no key"); e.code = "no_key"; throw e; }
+      const images = opts.images ? await Promise.all(opts.images.slice(0, 6).map(toB64)) : [];
+      const content = [...images.map(data => ({ type: "image", source: { type: "base64", media_type: "image/jpeg", data } })), { type: "text", text: prompt + "\n\nReply with ONLY the JSON object." }];
+      let r;
+      try {
+        r = await fetch("https://api.anthropic.com/v1/messages", { method: "POST", signal: opts.signal,
+          headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "anthropic-dangerous-direct-browser-access": "true", "content-type": "application/json" },
+          body: JSON.stringify({ model: SB.model || "claude-sonnet-5", max_tokens: 4000, messages: [{ role: "user", content }] }) });
+      } catch(x){ const e = new Error(x.name === "AbortError" ? "cancelled" : "network"); e.code = x.name === "AbortError" ? "cancelled" : "network"; throw e; }
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok){ const e = new Error(j?.error?.message || `API error ${r.status}`); e.code = r.status === 401 ? "bad_key" : r.status === 429 ? "rate_limited" : "read_failed"; e.detail = j?.error?.message; throw e; }
+      return parseJsonLoose((j.content||[]).filter(c => c.type === "text").map(c => c.text).join(""));
+    }
+  };
+}
+const downloadsImpl = {
+  async save({ filename, data }){
+    const blob = data instanceof Blob ? data : new Blob([data], { type: "text/plain" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = filename; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 4000);
+  }
+};
+
+// import the file exported from the Claude version
+async function importAll(file, btn){
+  const j = JSON.parse(await file.text());
+  if (j.format !== "41-green-drive-export") throw new Error("That isn't a 41 Green Drive export file.");
+  const ids = Object.keys(j.assets || {}); let n = 0;
+  for (const id of ids){ n++; if (btn) btn.textContent = `Uploading photos ${n}/${ids.length}…`;
+    const url = j.assets[id]; const blob = await (await fetch(url)).blob(); await state.assets.uploadAs(id, blob, blob.type || "application/octet-stream"); }
+  if (btn) btn.textContent = "Saving entries…";
+  const rows = [];
+  if (j.settings) rows.push({ path: "settings/main", data: j.settings });
+  (j.expenses||[]).forEach(e => { const { id, ...d } = e; rows.push({ path: "expenses/" + id, data: d }); });
+  (j.personal||[]).forEach(e => { const { id, ...d } = e; rows.push({ path: PRIVATE + "/" + id, data: d }); });
+  (j.log||[]).forEach(e => { const { id, ...d } = e; rows.push({ path: LOG + "/" + id, data: d }); });
+  await state.db.bulk(rows);
+  await ensureSigned(assetIds());
+  return { entries: (j.expenses||[]).length + (j.personal||[]).length, photos: ids.length };
+}
+
+// ---------- sign in ----------
+function renderSignIn(msg){
+  document.querySelectorAll("header [data-view],[data-owner]").forEach(b => b.hidden = true);
+  $("#period").style.visibility = "hidden";
+  app.innerHTML = `<section class="hero"><p class="statement" style="color:var(--ink)">Sign in</p><p class="sub">41 Green Drive Expenses</p></section>
+    <div class="panel" style="max-width:420px"><div class="grid" style="grid-template-columns:1fr">
+      <label class="f">Email<input id="siEmail" type="email" autocomplete="username" inputmode="email"></label>
+      <label class="f">Password<input id="siPass" type="password" autocomplete="current-password"></label></div>
+      <div class="row" style="margin-top:14px"><button class="btn primary" id="siGo">Sign in</button><span class="status" id="siMsg" style="margin:0">${esc(msg||"")}</span></div></div>`;
+  const go = async () => { $("#siMsg").textContent = "Signing in…";
+    const { error } = await sb.auth.signInWithPassword({ email: $("#siEmail").value.trim(), password: $("#siPass").value });
+    if (error){ $("#siMsg").textContent = "That email or password didn't work."; return; } location.reload(); };
+  $("#siGo").onclick = go; $("#siPass").onkeydown = e => { if (e.key === "Enter") go(); };
+}
+async function signOut(){ await sb.auth.signOut(); location.reload(); }
+
+// ---------- boot ----------
+(async () => {
+  if (!window.supabase || !SB.supabaseUrl || /PASTE_/.test(SB.supabaseUrl + SB.supabaseAnonKey)){
+    app.innerHTML = `<div class="banner">Setup isn't finished: open <b>config.js</b> and paste your Supabase Project URL and anon key.</div>`; return;
+  }
+  sb = window.supabase.createClient(SB.supabaseUrl, SB.supabaseAnonKey, { auth: { persistSession: true, autoRefreshToken: true } });
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session){ renderSignIn(); return; }
+  uid = session.user.id;
+  const db = makeDb();
+  state.db = db; state.downloads = downloadsImpl; state.assets = makeAssets(); state.isOwner = true; state.sample = makeSample();
+  try { await db.load(); } catch(e){ app.innerHTML = `<div class="banner">Couldn't load your data: ${esc(e.message||e)}. Check that setup.sql was run, then reload.</div>`; return; }
+  db.live();
+  db.doc("settings/main").onSnapshot(snap => { state.settings = snap.exists ? snap.data() : null; state.gotSettings = true; runRecurring(); if (!busy()) render(); });
+  db.collection("expenses").onSnapshot(async snap => {
+    state.expenses = snap.docs.map(d => ({id:d.id, ...d.data()}));
+    state.gotExp = true; runRecurring();
+    if (await ensureSigned(assetIds()).catch(()=>false)) {}
+    if (!busy()) render();
+  });
+  db.collection(LOG).orderBy("at","desc").limit(300).onSnapshot(snap => { state.log = snap.docs.map(d => ({id:d.id, ...d.data()})); if (state.view==="history") render(); });
+  db.collection(PRIVATE).onSnapshot(snap => { state.personal = snap.docs.map(d => ({id:d.id, ...d.data()})); if (!busy()) render(); });
+})();
+})();
+</script>
+</body>
+</html>
