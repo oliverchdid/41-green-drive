@@ -198,6 +198,26 @@ td input,td select{min-width:90px}
 .lock{position:fixed;inset:0;z-index:50;background:var(--bg);display:grid;place-items:center;padding:24px}
 .lockin{display:grid;gap:10px;justify-items:center;text-align:center;max-width:320px}
 @media (max-width:600px){.hrow{grid-template-columns:1fr auto}.hrow > div:last-child{grid-column:1/-1}}
+/* phone tables: small ones shrink, wide ones become stacked cards (see fitTables) */
+@media (max-width:600px){
+  table.fit{min-width:0}
+  table.fit th,table.fit td{padding:8px 4px;white-space:normal}
+  table.fit td input,table.fit td select{min-width:0}
+  table.stack{min-width:0}
+  table.stack thead{display:none}
+  table.stack,table.stack tbody,table.stack tfoot,table.stack tr,table.stack td{display:block;width:100%}
+  table.stack tr{padding:8px 0 10px;border-bottom:1px solid var(--line)}
+  table.stack tbody tr:last-child{border-bottom:0}
+  table.stack tfoot tr{border-top:2px solid var(--line);border-bottom:0;margin-top:4px}
+  table.stack td{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:3px 2px;border:0;white-space:normal;text-align:right;min-height:0}
+  table.stack td::before{content:attr(data-label);color:var(--muted);font-weight:600;font-size:13px;text-align:left;flex:1 1 auto}
+  table.stack:not(.nt) td:first-child{font-weight:800;font-size:16px;padding-bottom:4px}
+  table.stack:not(.nt) td:first-child::before{content:none}
+  table.stack td[data-label=""]::before{content:none}
+  table.stack td[data-label=""]{justify-content:flex-end}
+  table.stack td input:not([type=checkbox]),table.stack td select{width:58%!important;max-width:58%!important;min-width:0;flex:0 0 auto;text-align:left}
+  table.stack .emptycell,table.stack .blankrow{display:none}
+}
 </style>
 </head>
 <body>
@@ -256,6 +276,36 @@ const state = {
   isOwner: false, asPerson: ls.get("hl-as") || "", ready: false,
   draft: null, images: [], pdfs: [], entriesScope: "month", migrated: false
 };
+
+// ---------- phone-friendly tables ----------
+// Every table gets its column names copied onto its cells. On phones, tables with more than 4 columns
+// turn into stacked cards (label on the left, value on the right) so nothing scrolls sideways;
+// smaller tables just shrink to fit.
+const EMPTY_CELL = /^(\$0\.00|—|-|)$/;
+function fitTables(){
+  document.querySelectorAll("table").forEach(t => {
+    if (t.closest(".accts")) return;                       // the Balances tables already have their own phone layout
+    const heads = [...t.querySelectorAll("thead th")].map(th => th.textContent.trim());
+    const firstRow = t.querySelector("tbody tr") || t.querySelector("tr");
+    const cols = heads.length || (firstRow ? firstRow.children.length : 0);
+    t.classList.toggle("stack", cols > 4);
+    t.classList.toggle("fit", cols <= 4);
+    if (cols <= 4) return;
+    t.classList.toggle("nt", !!(firstRow && firstRow.children[0] && firstRow.children[0].querySelector("input,select")));
+    t.querySelectorAll("tbody tr, tfoot tr").forEach(tr => {
+      let blank = true;
+      [...tr.children].forEach((td, i) => {
+        td.setAttribute("data-label", heads[i] || "");
+        const empty = !td.querySelector("input,select,button,a") && EMPTY_CELL.test(td.textContent.trim());
+        td.classList.toggle("emptycell", empty && i > 0);
+        if (i > 0 && !empty) blank = false;
+      });
+      tr.classList.toggle("blankrow", blank && tr.children.length > 1);
+    });
+  });
+}
+let fitQueued = false;
+new MutationObserver(() => { if (fitQueued) return; fitQueued = true; requestAnimationFrame(() => { fitQueued = false; fitTables(); }); }).observe(document.body, {childList:true, subtree:true});
 
 function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2600); }
 function fallbackSettings(){ return { me:"Me", people:["Me"], splits:Object.fromEntries(SHARED.map(c=>[c,{Me:100}])), lines:[], personalCategories:PERSONAL_DEFAULT }; }
