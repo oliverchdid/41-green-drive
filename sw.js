@@ -1,7 +1,7 @@
 // 41 Green Drive: keeps the app itself on the phone so it opens without a connection.
 // Your data is not stored here (the app keeps its own saved copy); this only caches the page and its libraries.
-const CACHE = "gd-shell-v3";
-const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./favicon.png", "./apple-touch-icon.png", "./icon-192.png", "./icon-512.png"];
+const CACHE = "gd-shell-v4";
+const SHELL = ["./", "./index.html", "./config.js", "./manifest.webmanifest", "./favicon.png?v=3", "./apple-touch-icon.png?v=3", "./icon-192.png?v=3", "./icon-512.png?v=3"];
 const LIBS = /^https:\/\/(cdn\.jsdelivr\.net|cdnjs\.cloudflare\.com)\//;
 
 self.addEventListener("install", e => {
