@@ -260,6 +260,7 @@ td input,td select{min-width:90px}
 <script>
 (() => {
 "use strict";
+const APP_VERSION = "2026-10-31 (one-step statement)";   // shown at the bottom of Settings; change it with each update
 const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
 const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
 const SPLIT_BY_LINES = "Split by lines";
@@ -1947,6 +1948,7 @@ function renderSettings(banner){
     <p class="muted" style="font-size:13px;margin-bottom:0">Each one is added automatically on that day every month. Changes apply to this month and future months. Earlier months keep their amounts.</p></div>`;
   html += `<h2>Not-split categories (comma separated)</h2><div class="panel"><label class="f"><input id="sPc" value="${esc((s.personalCategories||PERSONAL_DEFAULT).join(", "))}"></label></div>`;
   html += `<div class="row" style="margin-top:18px"><button class="btn primary" id="sSave">Save settings</button><span class="status" id="sMsg"></span></div>`;
+  html += `<p class="muted" style="font-size:12px;margin-top:24px">App version ${APP_VERSION}</p>`;
   app.innerHTML = html;
   const collect = () => {
     const people = $("#sPeople").value.split(",").map(x=>x.trim()).filter(Boolean);
