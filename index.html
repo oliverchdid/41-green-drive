@@ -1501,34 +1501,34 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
   txt("41 Green Drive", M, y+6, {bold:true, size:22});
   txt(`${MONTHS[today.getMonth()]} ${today.getDate()}, ${today.getFullYear()}`, W-M, y+6, {size:10, color:mute, align:"right"}); y += 28;
   txt(`${person}  |  ${title}  |  ${range}`, M, y, {size:11, color:mute}); y += 34;
-  // The statement tells one story: your part of the bills, minus what your account already paid, minus what's
-  // still sitting in your account = what you owe. Every number in the summary appears somewhere above it.
+  // The statement is one subtraction: your part of the bills minus all the money in your account = what you owe.
+  // Every number in the summary appears as a total above it.
   const isM = mode==="month"; const monName = MONTHS[+thisP.slice(5)-1];
   const inScope = i => isM ? i.period===thisP : true;
   const sum = (arr, f) => r2(arr.reduce((a,x)=>a+f(x),0));
   const billsNow = sum(L.items.filter(inScope), i=>i.share);                 // your part of this month's (or all) bills
-  const carriedOpen = isM ? sum(L.items.filter(i=>i.period<thisP), i=>i.left) : 0;
-  const usedNow = sum(L.items.filter(inScope), i=>i.paid);                   // paid from your account
-  const stillOpen = sum(L.items, i=>i.left);
+  const carriedOpen = isM ? sum(L.items.filter(i=>i.period<thisP), i=>i.left) : 0;   // earlier bills still unpaid
   const creditsNow = isM ? L.credits.filter(c => c.p===thisP) : L.credits;
+  // money left over from earlier months, after it paid those months' bills
   const opening = isM ? r2(sum(L.credits.filter(c=>c.p<thisP), c=>c.amount) - sum(L.items.filter(i=>i.period<thisP), i=>i.paid)) : 0;
-  const leftInAcct = L.pool;                                                 // what's in the account after paying bills (can be below 0)
+  const acctTotal = r2(opening + sum(creditsNow, c=>c.amount));             // all the money in your account for these bills
+  const owe = r2(billsNow + carriedOpen - acctTotal);                        // below 0 means they're owed money
   const scopeName = isM ? `${monName}'s bills` : "all the bills";
 
-  if (L.totalLeft > 0.005){ txt(`Total you owe: ${money(L.totalLeft)}`, M, y, {bold:true, size:18, color:red}); y += 22; }
-  else if (L.credit > 0.005){ txt(`Paid off. You're owed: ${money(L.credit)}`, M, y, {bold:true, size:18, color:green}); y += 22; }
+  if (owe > 0.005){ txt(`Total you owe: ${money(owe)}`, M, y, {bold:true, size:18, color:red}); y += 22; }
+  else if (owe < -0.005){ txt(`Paid off. You're owed: ${money(-owe)}`, M, y, {bold:true, size:18, color:green}); y += 22; }
   else { txt("Paid off. Nothing owed.", M, y, {bold:true, size:18, color:green}); y += 22; }
   const story = [`Your part of ${scopeName} is ${money(billsNow)}.`];
   if (carriedOpen > 0.005) story.push(`${money(carriedOpen)} is also still unpaid from ${earlierOpen.map(periodLabel).join(", ")}.`);
-  if (usedNow > 0.005) story.push(`${money(usedNow)} of it was already paid from your account.`);
-  if (leftInAcct > 0.005 && stillOpen > 0.005) story.push(`The ${money(Math.min(leftInAcct, stillOpen))} still in your account is taken off what's left.`);
+  if (acctTotal > 0.005) story.push(`The ${money(acctTotal)} in your account is taken off.`);
+  if (acctTotal < -0.005) story.push(`Your account is short by ${money(-acctTotal)}, which is added.`);
   doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...mute);
   const storyL = doc.splitTextToSize(story.join(" "), W-2*M); doc.text(storyL, M, y); y += storyL.length*13;
   y += 14;
 
-  // ---- Section: the bills, each marked Paid or Open ----
-  const cols = {date:M, bill:M+58, total:M+338, part:M+428, status:W-M};
-  const head = () => { txt("Date",cols.date,y,{bold:true,size:9,color:mute}); txt("Bill",cols.bill,y,{bold:true,size:9,color:mute}); txt("Bill total",cols.total,y,{bold:true,size:9,color:mute,align:"right"}); txt("Your part",cols.part,y,{bold:true,size:9,color:ink,align:"right"}); txt("Status",cols.status,y,{bold:true,size:9,color:mute,align:"right"}); y += 6; doc.setDrawColor(...line); doc.line(M,y,W-M,y); y += 14; };
+  // ---- Section: the bills ----
+  const cols = {date:M, bill:M+62, total:M+380, part:W-M};
+  const head = () => { txt("Date",cols.date,y,{bold:true,size:9,color:mute}); txt("Bill",cols.bill,y,{bold:true,size:9,color:mute}); txt("Bill total",cols.total,y,{bold:true,size:9,color:mute,align:"right"}); txt("Your part",cols.part,y,{bold:true,size:9,color:ink,align:"right"}); y += 6; doc.setDrawColor(...line); doc.line(M,y,W-M,y); y += 14; };
   bar(isM ? "Your bills" : "All your bills", `your part ${money(billsNow + carriedOpen)}`);
   const periods = [...new Set(shownItems.map(i=>i.period))].sort();
   if (!periods.length){ txt("No bills.", M, y, {color:mute}); y += 18; }
@@ -1538,7 +1538,7 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
     need(50); txt(periodLabel(p), M, y, {bold:true, size:11}); y += 16; head();
     its.forEach(i => {
       const e = i.e;
-      doc.setFontSize(10); const nameL = doc.splitTextToSize(i.name, 205);
+      doc.setFontSize(10); const nameL = doc.splitTextToSize(i.name, 240);
       const sub = [serviceText(e) ? `Covers ${serviceText(e)}` : "", splitDetail(e, person)].filter(Boolean).join(" | ");
       doc.setFontSize(8.5); const subL = sub ? doc.splitTextToSize(sub, 280) : [];
       const h = nameL.length*12 + subL.length*10 + 8; if (need(h + 10)) head();
@@ -1546,45 +1546,39 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
       txt(`${MONTHS[+mm-1].slice(0,3)} ${+dd}`, cols.date, y);
       doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...ink); doc.text(nameL, cols.bill, y);
       if (subL.length){ doc.setFontSize(8.5); doc.setTextColor(...mute); doc.text(subL, cols.bill, y + nameL.length*12); }
-      const isPaid = i.left <= 0.005;
       txt(money(e.amount), cols.total, y, {color:mute, align:"right"});
-      txt(money(i.share), cols.part, y, {bold:true, color: isPaid ? ink : red, align:"right"});
-      txt(isPaid ? "Paid" : "Open", cols.status, y, {bold:true, color: isPaid ? green : red, align:"right"});
+      txt(money(i.share), cols.part, y, {bold:true, align:"right"});
       y += h; doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8);
     });
     y += 8;
   });
 
-  // ---- Section: your account (money in, money used to pay bills, what's left) ----
+  // ---- Section: your account (all the money that counts toward your bills) ----
   const row = (label, val, o={}) => { need(18); txt(label, o.x||M, y, o); txt(val, W-M, y, {...o, align:"right"}); y += 16; };
   const signed = v => (v < -0.004 ? "- " : "+ ") + money(Math.abs(v));
   y += 6;
   bar("Your account");
   doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...mute);
-  const howL = doc.splitTextToSize("Money you pay in, and the others' share of any bill you pay for the whole house, goes into your account. It pays your bills automatically: whole bills only, oldest first, mortgage last.", W-2*M);
+  const howL = doc.splitTextToSize("Money you pay in, and the others' share of any bill you pay for the whole house, counts toward your bills.", W-2*M);
   doc.text(howL, M, y); y += howL.length*11 + 8;
   if (isM && Math.abs(opening) > 0.004) row(`In your account at the start of ${monName}`, (opening < 0 ? "- " : "") + money(Math.abs(opening)));
   creditsNow.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(c => {
     need(18); txt(fmtD(c.date), M, y, {color:mute}); txt(c.desc, M+82, y); txt(signed(c.amount), W-M, y, {bold:true, color: c.amount<0 ? red : green, align:"right"}); y += 16; });
-  if (usedNow > 0.005) row(`Used to pay the bills marked Paid above`, "- "+money(usedNow), {color:red});
-  if (!creditsNow.length && Math.abs(opening) <= 0.004 && usedNow <= 0.005){ txt(isM ? `Nothing went in or out of your account in ${monName}.` : "No money has gone into your account yet.", M, y, {color:mute}); y += 16; }
+  if (!creditsNow.length && Math.abs(opening) <= 0.004){ txt(isM ? `Nothing went into your account in ${monName}.` : "No money has gone into your account yet.", M, y, {color:mute}); y += 16; }
   doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8); y += 4;
-  row("Left in your account", (leftInAcct < -0.004 ? "- " : "") + money(Math.abs(leftInAcct)), {bold:true, color: leftInAcct < -0.004 ? red : leftInAcct > 0.004 ? green : ink});
+  row("Total in your account", (acctTotal < -0.004 ? "- " : "") + money(Math.abs(acctTotal)), {bold:true, color: acctTotal < -0.004 ? red : acctTotal > 0.004 ? green : ink});
   y += 10;
 
-  // ---- Summary: a plain subtraction, every line from the sections above ----
-  need(110);
+  // ---- Summary: one subtraction, both numbers are the totals above ----
+  need(90);
   bar("Summary");
   row(`Your part of ${scopeName}`, money(billsNow));
   if (carriedOpen > 0.005) row(`Still unpaid from ${earlierOpen.map(periodLabel).join(", ")}`, "+ "+money(carriedOpen));
-  if (usedNow > 0.005) row("Already paid from your account", "- "+money(usedNow), {color:green});
-  doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8); y += 4;
-  row(`Bills still open`, money(stillOpen), {bold:true});
-  if (leftInAcct < -0.004) row("Your account is short by", "+ "+money(-leftInAcct), {color:red});
-  if (leftInAcct > 0.004 && stillOpen > 0.005) row("Money still in your account", "- "+money(Math.min(leftInAcct, stillOpen)), {color:green});
+  if (acctTotal > 0.004) row("Money in your account", "- "+money(acctTotal), {color:green});
+  if (acctTotal < -0.004) row("Your account is short by", "+ "+money(-acctTotal), {color:red});
   y += 4; need(40); doc.setDrawColor(...ink); doc.line(M, y-6, W-M, y-6); y += 10;
-  if (L.totalLeft > 0.005){ txt("YOU STILL OWE", M, y, {bold:true, size:14, color:red}); txt(money(L.totalLeft), W-M, y, {bold:true, size:14, color:red, align:"right"}); }
-  else if (L.credit > 0.005){ txt("PAID OFF - YOU'RE OWED", M, y, {bold:true, size:14, color:green}); txt(money(L.credit), W-M, y, {bold:true, size:14, color:green, align:"right"}); }
+  if (owe > 0.005){ txt("YOU STILL OWE", M, y, {bold:true, size:14, color:red}); txt(money(owe), W-M, y, {bold:true, size:14, color:red, align:"right"}); }
+  else if (owe < -0.005){ txt("PAID OFF - YOU'RE OWED", M, y, {bold:true, size:14, color:green}); txt(money(-owe), W-M, y, {bold:true, size:14, color:green, align:"right"}); }
   else { txt("PAID OFF", M, y, {bold:true, size:14, color:green}); txt("$0.00", W-M, y, {bold:true, size:14, color:green, align:"right"}); }
   y += 20;
 
