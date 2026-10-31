@@ -260,7 +260,7 @@ td input,td select{min-width:90px}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2026-10-31 (red bill amounts)";   // shown at the bottom of Settings; change it with each update
+const APP_VERSION = "2026-10-31 (credit carried over)";   // shown at the bottom of Settings; change it with each update
 const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
 const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
 const SPLIT_BY_LINES = "Split by lines";
@@ -1562,7 +1562,10 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
   doc.setFont("helvetica","normal"); doc.setFontSize(9); doc.setTextColor(...mute);
   const howL = doc.splitTextToSize("Money you pay in, and the others' share of any bill you pay for the whole house, counts toward your bills.", W-2*M);
   doc.text(howL, M, y); y += howL.length*11 + 8;
-  if (isM && Math.abs(opening) > 0.004) row(`In your account at the start of ${monName}`, (opening < 0 ? "- " : "") + money(Math.abs(opening)));
+  // leftover money from earlier months (or, if below 0, what was still short) moves into this month
+  const prevMon = MONTHS[(+thisP.slice(5) + 10) % 12];
+  if (isM && opening > 0.004) row(`Credit carried over from ${prevMon}`, money(opening));
+  if (isM && opening < -0.004) row(`Shortfall carried over from ${prevMon}`, "- " + money(-opening));
   creditsNow.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(c => {
     need(18); txt(fmtD(c.date), M, y, {color:mute}); txt(c.desc, M+82, y); txt(signed(c.amount), W-M, y, {bold:true, color: c.amount<0 ? red : green, align:"right"}); y += 16; });
   if (!creditsNow.length && Math.abs(opening) <= 0.004){ txt(isM ? `Nothing went into your account in ${monName}.` : "No money has gone into your account yet.", M, y, {color:mute}); y += 16; }
