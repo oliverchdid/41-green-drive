@@ -260,7 +260,7 @@ td input,td select{min-width:90px}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2026-10-31 (one-step statement)";   // shown at the bottom of Settings; change it with each update
+const APP_VERSION = "2026-10-31 (red bill amounts)";   // shown at the bottom of Settings; change it with each update
 const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
 const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
 const SPLIT_BY_LINES = "Split by lines";
@@ -1529,8 +1529,8 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
 
   // ---- Section: the bills ----
   const cols = {date:M, bill:M+62, total:M+380, part:W-M};
-  const head = () => { txt("Date",cols.date,y,{bold:true,size:9,color:mute}); txt("Bill",cols.bill,y,{bold:true,size:9,color:mute}); txt("Bill total",cols.total,y,{bold:true,size:9,color:mute,align:"right"}); txt("Your part",cols.part,y,{bold:true,size:9,color:ink,align:"right"}); y += 6; doc.setDrawColor(...line); doc.line(M,y,W-M,y); y += 14; };
-  bar(isM ? "Your bills" : "All your bills", `your part ${money(billsNow + carriedOpen)}`);
+  const head = () => { txt("Date",cols.date,y,{bold:true,size:9,color:mute}); txt("Bill",cols.bill,y,{bold:true,size:9,color:mute}); txt("Bill total",cols.total,y,{bold:true,size:9,color:mute,align:"right"}); txt("Your part",cols.part,y,{bold:true,size:9,color:red,align:"right"}); y += 6; doc.setDrawColor(...line); doc.line(M,y,W-M,y); y += 14; };
+  bar(isM ? "Your bills" : "All your bills", `your part ${money(billsNow + carriedOpen)}`, red);
   const periods = [...new Set(shownItems.map(i=>i.period))].sort();
   if (!periods.length){ txt("No bills.", M, y, {color:mute}); y += 18; }
   periods.forEach(p => {
@@ -1547,8 +1547,8 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
       txt(`${MONTHS[+mm-1].slice(0,3)} ${+dd}`, cols.date, y);
       doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...ink); doc.text(nameL, cols.bill, y);
       if (subL.length){ doc.setFontSize(8.5); doc.setTextColor(...mute); doc.text(subL, cols.bill, y + nameL.length*12); }
-      txt(money(e.amount), cols.total, y, {color:mute, align:"right"});
-      txt(money(i.share), cols.part, y, {bold:true, align:"right"});
+      txt(money(e.amount), cols.total, y, {color:red, align:"right"});
+      txt(money(i.share), cols.part, y, {bold:true, color:red, align:"right"});
       y += h; doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8);
     });
     y += 8;
