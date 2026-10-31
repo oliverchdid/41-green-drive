@@ -260,7 +260,7 @@ td input,td select{min-width:90px}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2026-10-31 (credit carried over)";   // shown at the bottom of Settings; change it with each update
+const APP_VERSION = "2026-10-31 (you paid line)";   // shown at the bottom of Settings; change it with each update
 const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
 const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
 const SPLIT_BY_LINES = "Split by lines";
@@ -1453,7 +1453,7 @@ function statementLedger(person, lastP){
     const sh = sharesOf(e); const mine = sh[person]||0;
     if (e.paidBy === person){
       const front = (+e.amount||0) - mine;
-      if (front > 0.004) credits.push({date:e.date, p, desc:`You paid the whole ${billName(e)} bill (others' share)`, amount:front});
+      if (front > 0.004) credits.push({date:e.date, p, desc: mine > 0.004 ? `You paid the ${billName(e)} bill: ${money(e.amount)} total - ${money(mine)} your part` : `You paid the ${billName(e)} bill for the house`, amount:front});
       Object.entries(e.paidOff||{}).forEach(([who, when]) => { const v = sh[who]||0; if (who===S().me && who!==person && v>0.004) credits.push({date:when, p, desc:`Paid back to you for ${billName(e)}`, amount:-v}); });
       return;
     }
@@ -1567,7 +1567,8 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
   if (isM && opening > 0.004) row(`Credit carried over from ${prevMon}`, money(opening));
   if (isM && opening < -0.004) row(`Shortfall carried over from ${prevMon}`, "- " + money(-opening));
   creditsNow.slice().sort((a,b)=>String(a.date).localeCompare(String(b.date))).forEach(c => {
-    need(18); txt(fmtD(c.date), M, y, {color:mute}); txt(c.desc, M+82, y); txt(signed(c.amount), W-M, y, {bold:true, color: c.amount<0 ? red : green, align:"right"}); y += 16; });
+    doc.setFont("helvetica","normal"); doc.setFontSize(10); const dL = doc.splitTextToSize(c.desc, W-M-82-M-80);   // long bill names wrap instead of running into the amount
+    need(dL.length*12 + 6); txt(fmtD(c.date), M, y, {color:mute}); doc.setTextColor(...ink); doc.text(dL, M+82, y); txt(signed(c.amount), W-M, y, {bold:true, color: c.amount<0 ? red : green, align:"right"}); y += dL.length*12 + 4; });
   if (!creditsNow.length && Math.abs(opening) <= 0.004){ txt(isM ? `Nothing went into your account in ${monName}.` : "No money has gone into your account yet.", M, y, {color:mute}); y += 16; }
   doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8); y += 4;
   row("Total in your account", (acctTotal < -0.004 ? "- " : "") + money(Math.abs(acctTotal)), {bold:true, color: acctTotal < -0.004 ? red : acctTotal > 0.004 ? green : ink});
