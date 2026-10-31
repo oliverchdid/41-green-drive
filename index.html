@@ -260,7 +260,7 @@ td input,td select{min-width:90px}
 <script>
 (() => {
 "use strict";
-const APP_VERSION = "2026-10-31 (you paid line)";   // shown at the bottom of Settings; change it with each update
+const APP_VERSION = "2026-10-31 (gray bills, red part)";   // shown at the bottom of Settings; change it with each update
 const SHARED = ["Oil","Electricity","Internet","Water","Other Shared"];
 const PERSONAL_DEFAULT = ["Oil","Electricity","Internet","Water","Repairs & Maintenance","Appliances & Furniture","Improvements","Supplies","Other"];
 const SPLIT_BY_LINES = "Split by lines";
@@ -1544,10 +1544,12 @@ async function buildStatement(person, btn, withPhotos=false, mode="all"){
       doc.setFontSize(8.5); const subL = sub ? doc.splitTextToSize(sub, 280) : [];
       const h = nameL.length*12 + subL.length*10 + 8; if (need(h + 10)) head();
       const [,mm,dd] = e.date.split("-");
-      txt(`${MONTHS[+mm-1].slice(0,3)} ${+dd}`, cols.date, y);
-      doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...ink); doc.text(nameL, cols.bill, y);
-      if (subL.length){ doc.setFontSize(8.5); doc.setTextColor(...mute); doc.text(subL, cols.bill, y + nameL.length*12); }
-      txt(money(e.amount), cols.total, y, {color:red, align:"right"});
+      // everything in the bill rows is light gray except "Your part", which is bold red
+      const lightGray = [120,130,140], lighterGray = [150,158,166];
+      txt(`${MONTHS[+mm-1].slice(0,3)} ${+dd}`, cols.date, y, {color:lightGray});
+      doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(...lightGray); doc.text(nameL, cols.bill, y);
+      if (subL.length){ doc.setFontSize(8.5); doc.setTextColor(...lighterGray); doc.text(subL, cols.bill, y + nameL.length*12); }
+      txt(money(e.amount), cols.total, y, {color:lightGray, align:"right"});
       txt(money(i.share), cols.part, y, {bold:true, color:red, align:"right"});
       y += h; doc.setDrawColor(...line); doc.line(M, y-8, W-M, y-8);
     });
